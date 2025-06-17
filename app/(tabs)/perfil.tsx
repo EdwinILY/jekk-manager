@@ -3,12 +3,12 @@ import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-export default function HomeScreen() {
+export default function PerfilScreen() {
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">Inicio</ThemedText>
+      <ThemedText type="title">Perfil</ThemedText>
       <ThemedText style={styles.description}>
-        Bienvenido a tu aplicación de presupuestos. Aquí podrás gestionar tus finanzas personales.
+        Esta es la página de perfil donde podrás ver y editar tu información personal.
       </ThemedText>
     </ThemedView>
   );
