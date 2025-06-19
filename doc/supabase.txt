@@ -1,0 +1,55 @@
+He agregado un flujo de autenticación listo para Supabase y la pantalla de “Ingresar”. 
+Para que puedas añadir tus íconos después, dejé los placeholders en los `TextInput` y en el botón. 
+También creé un cliente básico de Supabase para que solo importes 
+`supabase` y empieces a llamar a `supabase.auth.signIn({ … })` donde quieras.
+
+– Creé `supabase.ts` en la raíz con la inicialización  
+– Añadí un nuevo layout para la sección auth en `app/(auth)/_layout.tsx`  
+– Creé la pantalla `app/(auth)/login.tsx` con el diseño de la UI que enviaste  
+
+Usa tu lógica de iconos preferida (FontAwesome, Ionicons…), simplemente reemplaza 
+los comentarios de “TODO: icon”. Cuando quieras probar, exporta `LOGIN` en tu router o importa 
+la ruta `/login`. ¡Ya está listo para que te conectes a Supabase!
+
+
+
+
+
+
+
+````
+
+````
+
+
+Made changes.
+
+
+````
+
+````
+
+
+Made changes.
+
+Made changes.
+
+
+````
+
+````
+
+
+Made changes.
+
+He creado todo el flujo de autenticación:
+
+• supabase.ts en la raíz con la inicialización lista para usar.  
+• Un layout de auth en _layout.tsx que envuelve las pantallas de login.  
+• La pantalla de login en login.tsx con placeholders para tus íconos y la llamada a
+ `supabase.auth.signInWithPassword`.  
+• Alias de `@/…` funcionando via Babel (`babel.config.js`) y TS (tsconfig.json).  
+
+Ahora cuando quieras añadir los íconos simplemente sustituye los 
+comentarios `// TODO: icon …`. Para probar, ejecuta la ruta `/login` y conecta la 
+lógica de navegación donde indica el `// TODO`.
