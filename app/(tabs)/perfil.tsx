@@ -4,9 +4,18 @@ import { ThemedView } from "@/components/ThemedView";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { UserInterface } from "../models/user.interfaz";
 import { IconPickerModal } from "@/components/IconPickerModal";
+import { updateProfileWithDefaultIcon } from "../services/storage.service";
+import { updateUserDisplayName } from "../Interfaces/user.interface";
 
 export default function PerfilScreen() {
   const [user, setUser] = useState<UserInterface | null>(null);
@@ -36,12 +45,33 @@ export default function PerfilScreen() {
     if (user) {
       setUser({ ...user, display_name: newName });
       setEditing(false);
+      handleUpdateDisplayName();
     }
   };
 
   const handleIconSelected = (url: string) => {
     if (user) {
       setUser({ ...user, photo_url: url });
+      handleSelectDefaultIcon(url);
+    }
+  };
+
+  const handleUpdateDisplayName = async () => {
+    const { success, error } = await updateUserDisplayName(user!.id, newName);
+
+    if (success) {
+      Alert.alert("Éxito", "Nombre actualizado correctamente");
+    } else {
+      Alert.alert("Error", error || "No se pudo actualizar el nombre");
+    }
+  };
+
+  const handleSelectDefaultIcon = async (iconName: string) => {
+    const success = await updateProfileWithDefaultIcon(user!.id, iconName);
+    if (success) {
+      Alert.alert("Éxito", "Ícono actualizado correctamente");
+    } else {
+      Alert.alert("Error", "No se pudo actualizar el ícono");
     }
   };
 
@@ -82,12 +112,14 @@ export default function PerfilScreen() {
 
       <View style={[styles.infoBox, { backgroundColor: infoBoxBg }]}>
         <ThemedText>
-          ¡Bienvenido a tu perfil! Aquí podrás ver y editar tu información personal.
+          ¡Bienvenido a tu perfil! Aquí podrás ver y editar tu información
+          personal.
         </ThemedText>
       </View>
 
       <IconPickerModal
         visible={modalVisible}
+        userID={user.id}
         onClose={() => setModalVisible(false)}
         onSelect={handleIconSelected}
       />
@@ -98,10 +130,10 @@ export default function PerfilScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 24,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   avatar: {
     width: 110,
@@ -109,11 +141,11 @@ const styles = StyleSheet.create({
     borderRadius: 55,
     marginBottom: 18,
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
   },
   editRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 4,
     gap: 8,
   },
@@ -122,38 +154,38 @@ const styles = StyleSheet.create({
   },
   email: {
     marginBottom: 18,
-    color: '#888',
+    color: "#888",
   },
   infoBox: {
     marginTop: 16,
     padding: 16,
     borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#aaa',
+    borderColor: "#aaa",
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
     minWidth: 120,
-    backgroundColor: '#fff',
-    color: '#222',
+    backgroundColor: "#fff",
+    color: "#222",
   },
   saveBtn: {
     marginLeft: 8,
-    backgroundColor: '#4caf50',
+    backgroundColor: "#4caf50",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
   saveBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
   editIcon: {
-    color: '#007bff',
+    color: "#007bff",
     marginLeft: 8,
   },
 });

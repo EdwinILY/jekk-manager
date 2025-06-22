@@ -1,35 +1,37 @@
+import { IconItem } from '@/app/Interfaces/IconItem.interface';
+import {
+  listIcons,
+  pickImage,
+  requestMediaPermissions,
+  takePhoto,
+  uploadImageToSupabase,
+} from '@/app/services/storage.service';
 import React, { useEffect, useState } from 'react';
 import {
-  Modal,
-  View,
-  Text,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
   FlatList,
   Image,
+  Modal,
   Pressable,
   StyleSheet,
-  ActivityIndicator,
-  Dimensions,
-  Alert,
+  Text,
+  View,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
-import { supabase } from '@/supabase';
 
 const { width } = Dimensions.get('window');
 
 interface IconPickerModalProps {
   visible: boolean;
+  userID : number;
   onClose: () => void;
   onSelect: (url: string) => void;
 }
 
-interface IconItem {
-  name: string;
-  url: string;
-}
-
 export const IconPickerModal: React.FC<IconPickerModalProps> = ({
   visible,
+  userID,
   onClose,
   onSelect,
 }) => {
@@ -42,81 +44,25 @@ export const IconPickerModal: React.FC<IconPickerModalProps> = ({
 
   const fetchIcons = async () => {
     setLoading(true);
-    const { data, error } = await supabase.storage.from('usericon').list('User_Icon_DEFAULT', {
-      limit: 100,
-      offset: 0,
-      sortBy: { column: 'name', order: 'asc' },
-    });
-
-    if (error) {
-      console.error('Error al listar íconos:', error.message);
-      setLoading(false);
-      return;
-    }
-
-    const iconsWithUrls: IconItem[] = data
-      .filter((item) => item.name.match(/\.(png|jpg|jpeg|webp)$/))
-      .map((item) => {
-        const fullPath = `User_Icon_DEFAULT/${item.name}`;
-        const { data: urlData } = supabase.storage.from('usericon').getPublicUrl(fullPath);
-        return {
-          name: item.name,
-          url: urlData.publicUrl,
-        };
-      });
-
-    setIcons(iconsWithUrls);
+    const icons = await listIcons();
+    setIcons(icons);
     setLoading(false);
   };
 
-  const uploadImageToSupabase = async (uri: string): Promise<string | null> => {
-    try {
-      const fileContent = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      const fileName = `uploads/${Date.now()}.jpg`;
-      const { error } = await supabase.storage
-        .from('usericon')
-        .upload(fileName, Buffer.from(fileContent, 'base64'), {
-          contentType: 'image/jpeg',
-          upsert: true,
-        });
-
-      if (error) {
-        Alert.alert('Error', 'No se pudo subir la imagen');
-        return null;
-      }
-
-      const { data } = supabase.storage.from('usericon').getPublicUrl(fileName);
-      return data.publicUrl;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  };
-
   const handlePickImage = async (fromCamera: boolean) => {
-    const permission = fromCamera
-      ? await ImagePicker.requestCameraPermissionsAsync()
-      : await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
+    const hasPermission = await requestMediaPermissions(fromCamera);
+    if (!hasPermission) {
       Alert.alert('Permiso denegado', 'No se puede acceder a la cámara o galería');
       return;
     }
 
-    const result = fromCamera
-      ? await ImagePicker.launchCameraAsync({ quality: 0.8, allowsEditing: true })
-      : await ImagePicker.launchImageLibraryAsync({ quality: 0.8, allowsEditing: true });
+    const result = fromCamera ? await takePhoto() : await pickImage();
+    if (!result) return;
 
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      const publicUrl = await uploadImageToSupabase(uri);
-      if (publicUrl) {
-        onSelect(publicUrl);
-        onClose();
-      }
+    const publicUrl = await uploadImageToSupabase(result.uri,userID);
+    if (publicUrl) {
+      onSelect(publicUrl);
+      onClose();
     }
   };
 
