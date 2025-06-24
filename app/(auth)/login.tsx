@@ -68,11 +68,11 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
         <View style={styles.authLinks}>
-          <TouchableOpacity onPress={() => {/* TODO: forgot password */}}>
+          <TouchableOpacity style={styles.forgotPassword} onPress={() => {/* TODO: forgot password */}}>
             <ThemedText style={[styles.link, { color: tintColor }]}>¿Olvidaste tu contraseña?</ThemedText>
           </TouchableOpacity>
           <Link href="/register" asChild>
-            <TouchableOpacity>
+            <TouchableOpacity style={styles.registerContainer}>
               <ThemedText style={[styles.link]}>¿No tienes cuenta? <ThemedText style={[styles.link, { color: tintColor }]}>Registrarse</ThemedText></ThemedText>
             </TouchableOpacity>
           </Link>
@@ -129,8 +129,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   authLinks: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     alignItems: 'center',
+    width: '100%',
+    marginTop: 10,
+  },
+  forgotPassword: {
+    marginBottom: 2,
+  },
+  registerContainer: {
+    marginTop: 2,
   },
 });
