@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '../../components/ThemedText';
@@ -67,14 +67,16 @@ export default function LoginScreen() {
             <ThemedText style={styles.buttonText}>Ingresar →</ThemedText>
           )}
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => {/* TODO: forgot password */}}>
-          <ThemedText style={[styles.link, { color: tintColor }]}>¿Olvidaste tu contraseña?</ThemedText>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => {/* TODO: register navigation */}}>
-          <ThemedText style={styles.link}>
-            ¿No tienes cuenta? <ThemedText type="link">Registrarse</ThemedText>
-          </ThemedText>
-        </TouchableOpacity>
+        <View style={styles.authLinks}>
+          <TouchableOpacity onPress={() => {/* TODO: forgot password */}}>
+            <ThemedText style={[styles.link, { color: tintColor }]}>¿Olvidaste tu contraseña?</ThemedText>
+          </TouchableOpacity>
+          <Link href="/register" asChild>
+            <TouchableOpacity>
+              <ThemedText style={[styles.link, { color: tintColor }]}>¿No tienes cuenta? Registrarse</ThemedText>
+            </TouchableOpacity>
+          </Link>
+        </View>
       </View>
     </ThemedView>
   );
@@ -86,11 +88,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    
+
   },
   title: {
     marginBottom: 20,
-    
+
   },
   form: {
     width: '100%',
@@ -126,5 +128,10 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
     marginBottom: 10,
+  },
+  authLinks: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });
