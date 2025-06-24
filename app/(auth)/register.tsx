@@ -124,7 +124,7 @@ export default function RegisterScreen() {
                 </TouchableOpacity>
                 <Link href="/login" asChild>
                     <TouchableOpacity>
-                        <ThemedText style={[styles.link, { color: tintColor }]}>¿Ya tienes una cuenta? Iniciar sesión</ThemedText>
+                        <ThemedText style={[styles.link, ]}>¿Ya tienes una cuenta? <ThemedText style={[styles.link, { color: tintColor }]}>Iniciar sesión</ThemedText></ThemedText>
                     </TouchableOpacity>
                 </Link>
             </View>

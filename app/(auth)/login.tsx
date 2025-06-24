@@ -73,7 +73,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
           <Link href="/register" asChild>
             <TouchableOpacity>
-              <ThemedText style={[styles.link, { color: tintColor }]}>¿No tienes cuenta? Registrarse</ThemedText>
+              <ThemedText style={[styles.link]}>¿No tienes cuenta? <ThemedText style={[styles.link, { color: tintColor }]}>Registrarse</ThemedText></ThemedText>
             </TouchableOpacity>
           </Link>
         </View>
@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-
   },
   title: {
     marginBottom: 20,
