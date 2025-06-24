@@ -213,4 +213,93 @@ BEGIN
     comment = p_comment,
     voted_at = CURRENT_TIMESTAMP;
 END;
-$$ LANGUAGE plpgsql; 
+$$ LANGUAGE plpgsql;
+
+-- Añadir columna status a la tabla groups
+ALTER TABLE groups ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'archived', 'inactive'));
+
+-- Función para actualizar el estado de un grupo
+CREATE OR REPLACE FUNCTION update_group_status(
+  p_group_id INTEGER,
+  p_new_status VARCHAR,
+  p_user_id INTEGER
+)
+RETURNS void AS $$
+DECLARE
+  user_role VARCHAR;
+BEGIN
+  -- Verificar que el usuario es admin del grupo
+  SELECT role INTO user_role
+  FROM group_members
+  WHERE group_id = p_group_id AND user_id = p_user_id;
+  
+  IF user_role IS NULL THEN
+    RAISE EXCEPTION 'Usuario no es miembro del grupo';
+  END IF;
+  
+  IF user_role != 'admin' THEN
+    RAISE EXCEPTION 'Solo los administradores pueden cambiar el estado del grupo';
+  END IF;
+  
+  -- Actualizar el estado del grupo
+  UPDATE groups 
+  SET status = p_new_status
+  WHERE id = p_group_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Añadir columna status a la tabla group_members para archivo individual por usuario
+ALTER TABLE group_members ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'archived', 'left'));
+
+-- Función para actualizar el estado de un grupo para un usuario específico
+CREATE OR REPLACE FUNCTION update_user_group_status(
+  p_group_id INTEGER,
+  p_user_id INTEGER,
+  p_new_status VARCHAR
+)
+RETURNS void AS $$
+BEGIN
+  -- Verificar que el usuario es miembro del grupo
+  IF NOT EXISTS (SELECT 1 FROM group_members WHERE group_id = p_group_id AND user_id = p_user_id) THEN
+    RAISE EXCEPTION 'Usuario no es miembro del grupo';
+  END IF;
+  
+  -- Actualizar el estado del usuario en el grupo
+  UPDATE group_members 
+  SET status = p_new_status
+  WHERE group_id = p_group_id AND user_id = p_user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Actualizar función get_groups_summary para considerar estado individual del usuario
+CREATE OR REPLACE FUNCTION get_groups_summary(p_user_id int)
+returns table (
+  id int,
+  name varchar,
+  description text,
+  total_funds decimal,
+  member_count bigint,
+  active_budgets bigint,
+  created_by_name varchar,
+  user_status varchar
+) as $$
+begin
+  return query
+  select 
+    g.id, 
+    g.name, 
+    g.description, 
+    g.total_funds,
+    count(distinct gm2.user_id) filter (where gm2.status = 'active') as member_count,
+    count(distinct b.id) filter (where b.status = 'approved') as active_budgets,
+    u.display_name as created_by,
+    gm.status as user_status
+  from groups g
+  join group_members gm on g.id = gm.group_id and gm.user_id = p_user_id
+  left join group_members gm2 on g.id = gm2.group_id
+  left join budgets b on g.id = b.group_id
+  join users u on g.created_by = u.id
+  where gm.user_id = p_user_id
+  group by g.id, u.display_name, gm.status;
+end;
+$$ language plpgsql; 

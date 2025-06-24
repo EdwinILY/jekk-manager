@@ -22,7 +22,7 @@ export default function GroupDetailScreen() {
   const [selectedBudgetForVote, setSelectedBudgetForVote] = useState<BudgetWithUserVote | null>(null);
   const [voteType, setVoteType] = useState<'approve' | 'reject' | null>(null);
   const [voteComment, setVoteComment] = useState('');
-  const [activeSection, setActiveSection] = useState<'pending' | 'completed' | 'archived'>('pending');
+  const [activeSection, setActiveSection] = useState<'pending' | 'completed'>('pending');
   const router = useRouter();
 
   // TODO: Reemplazar con el ID del usuario autenticado
@@ -114,7 +114,7 @@ export default function GroupDetailScreen() {
   const handleStatusChange = async (budgetId: number, newStatus: string) => {
     try {
       await updateBudgetStatus(budgetId, newStatus, currentUserId);
-      Alert.alert('Estado actualizado', 'El estado del presupuesto ha sido actualizado.');
+      Alert.alert('Estado actualizado', 'El estado del presupuesto ha sido actualizado con éxito.');
       fetchBudgets(); // Recargar presupuestos
     } catch (error: any) {
       Alert.alert('Error', 'No se pudo actualizar el estado: ' + error.message);
@@ -226,28 +226,53 @@ export default function GroupDetailScreen() {
             </View>
         </View>
         
-        {item.isAdmin && (
+        {item.isAdmin && activeSection === 'pending' && (
           <View style={styles.adminActions}>
-              {item.status === 'draft' && (
-                  <Pressable style={styles.adminButton} onPress={() => handleStatusChange(item.id, 'pending')}>
-                      <ThemedText style={styles.adminButtonText}>📤 Enviar a Votación</ThemedText>
-                  </Pressable>
-              )}
-              {item.status === 'pending' && item.approve_votes > item.reject_votes && (
-                  <Pressable style={styles.adminButton} onPress={() => handleStatusChange(item.id, 'approved')}>
-                      <ThemedText style={styles.adminButtonText}>✅ Aprobar</ThemedText>
-                  </Pressable>
-              )}
-              {item.status === 'approved' && (
-                  <Pressable style={styles.adminButton} onPress={() => handleStatusChange(item.id, 'executing')}>
-                      <ThemedText style={styles.adminButtonText}>🚀 Iniciar Ejecución</ThemedText>
-                  </Pressable>
-              )}
-              {item.status === 'executing' && (
-                  <Pressable style={styles.adminButton} onPress={() => handleStatusChange(item.id, 'completed')}>
-                      <ThemedText style={styles.adminButtonText}>🏁 Marcar Completado</ThemedText>
-                  </Pressable>
-              )}
+            {item.status === 'draft' && (
+              <Pressable 
+                style={styles.adminButton}
+                onPress={() => handleStatusChange(item.id, 'pending')}
+              >
+                <ThemedText style={styles.adminButtonText}>📤 Enviar a Votación</ThemedText>
+              </Pressable>
+            )}
+            {item.status === 'pending' && item.approve_votes > item.reject_votes && (
+              <Pressable 
+                style={styles.adminButton}
+                onPress={() => handleStatusChange(item.id, 'approved')}
+              >
+                <ThemedText style={styles.adminButtonText}>✅ Aprobar</ThemedText>
+              </Pressable>
+            )}
+            {item.status === 'pending' && (
+              <Pressable 
+                style={[styles.adminButton, { backgroundColor: '#e74c3c' }]}
+                onPress={() => handleStatusChange(item.id, 'rejected')}
+              >
+                <ThemedText style={styles.adminButtonText}>❌ Rechazar</ThemedText>
+              </Pressable>
+            )}
+          </View>
+        )}
+
+        {item.isAdmin && activeSection === 'completed' && (
+          <View style={styles.adminActions}>
+            {item.status === 'approved' && (
+              <Pressable 
+                style={styles.adminButton}
+                onPress={() => handleStatusChange(item.id, 'executing')}
+              >
+                <ThemedText style={styles.adminButtonText}>🚀 Ejecutar</ThemedText>
+              </Pressable>
+            )}
+            {item.status === 'executing' && (
+              <Pressable 
+                style={styles.adminButton}
+                onPress={() => handleStatusChange(item.id, 'completed')}
+              >
+                <ThemedText style={styles.adminButtonText}>🎉 Completar</ThemedText>
+              </Pressable>
+            )}
           </View>
         )}
     </ThemedView>
@@ -332,7 +357,7 @@ export default function GroupDetailScreen() {
               <ThemedText style={[styles.emptyText, { color: secondaryTextColor }]}>
                 {activeSection === 'pending' 
                   ? '📋 No hay presupuestos en votación' 
-                  : '✅ No hay presupuestos completados'
+                  : '✅ No hay presupuestos activos'
                 }
               </ThemedText>
               {activeSection === 'pending' && (
@@ -705,8 +730,8 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -724,7 +749,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
   },

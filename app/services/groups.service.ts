@@ -204,4 +204,30 @@ export const createGroup = async (groupData: NewGroup): Promise<number> => {
       throw new Error('No se pudo crear el grupo: ' + error.message);
   }
   return data;
+};
+
+export const updateGroupStatus = async (groupId: number, newStatus: string, userId: number): Promise<void> => {
+  const { error } = await supabase.rpc('update_group_status', {
+      p_group_id: groupId,
+      p_new_status: newStatus,
+      p_user_id: userId
+  });
+
+  if (error) {
+      console.error('Error updating group status:', error);
+      throw new Error('No se pudo actualizar el estado del grupo: ' + error.message);
+  }
+};
+
+export const updateUserGroupStatus = async (groupId: number, userId: number, newStatus: string): Promise<void> => {
+  const { error } = await supabase.rpc('update_user_group_status', {
+      p_group_id: groupId,
+      p_user_id: userId,
+      p_new_status: newStatus
+  });
+
+  if (error) {
+      console.error('Error updating user group status:', error);
+      throw new Error('No se pudo actualizar el estado del grupo: ' + error.message);
+  }
 }; 
