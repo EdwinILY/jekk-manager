@@ -194,4 +194,23 @@ BEGIN
   
   RETURN new_group_id;
 END;
+$$ LANGUAGE plpgsql;
+
+-- Función para votar con comentarios
+CREATE OR REPLACE FUNCTION vote_on_budget_with_comment(
+  p_budget_id INTEGER,
+  p_user_id INTEGER,
+  p_vote VARCHAR,
+  p_comment TEXT DEFAULT NULL
+)
+RETURNS void AS $$
+BEGIN
+  INSERT INTO budget_votes (budget_id, user_id, vote, comment)
+  VALUES (p_budget_id, p_user_id, p_vote, p_comment)
+  ON CONFLICT (budget_id, user_id)
+  DO UPDATE SET 
+    vote = p_vote, 
+    comment = p_comment,
+    voted_at = CURRENT_TIMESTAMP;
+END;
 $$ LANGUAGE plpgsql; 

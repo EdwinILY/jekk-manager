@@ -91,6 +91,20 @@ export const voteOnBudget = async (budgetId: number, userId: number, vote: 'appr
   }
 }
 
+export const voteOnBudgetWithComment = async (budgetId: number, userId: number, vote: 'approve' | 'reject', comment?: string): Promise<void> => {
+  const { error } = await supabase.rpc('vote_on_budget_with_comment', {
+      p_budget_id: budgetId,
+      p_user_id: userId,
+      p_vote: vote,
+      p_comment: comment || null
+  });
+
+  if (error) {
+      console.error('Error voting on budget with comment:', error);
+      throw new Error('No se pudo registrar el voto: ' + error.message);
+  }
+}
+
 export const updateBudgetStatus = async (budgetId: number, newStatus: string, userId: number): Promise<void> => {
   const { error } = await supabase.rpc('update_budget_status', {
       p_budget_id: budgetId,

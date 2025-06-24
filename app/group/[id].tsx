@@ -1,12 +1,12 @@
 import { Budget } from '@/app/models/budget.interface';
-import { getBudgetsForGroup, getUserVote, isUserAdmin, updateBudgetStatus, voteOnBudget } from '@/app/services/groups.service';
+import { getBudgetsForGroup, getUserVote, isUserAdmin, updateBudgetStatus, voteOnBudget, voteOnBudgetWithComment } from '@/app/services/groups.service';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 interface BudgetWithUserVote extends Budget {
   userVote?: 'approve' | 'reject' | null;
@@ -18,6 +18,10 @@ export default function GroupDetailScreen() {
   const [budgets, setBudgets] = useState<BudgetWithUserVote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [voteModalVisible, setVoteModalVisible] = useState(false);
+  const [selectedBudgetForVote, setSelectedBudgetForVote] = useState<BudgetWithUserVote | null>(null);
+  const [voteType, setVoteType] = useState<'approve' | 'reject' | null>(null);
+  const [voteComment, setVoteComment] = useState('');
   const router = useRouter();
 
   // TODO: Reemplazar con el ID del usuario autenticado
@@ -70,6 +74,28 @@ export default function GroupDetailScreen() {
       await voteOnBudget(budgetId, currentUserId, vote);
       Alert.alert('Voto registrado', 'Tu voto ha sido registrado con éxito.');
       fetchBudgets(); // Recargar presupuestos para mostrar el nuevo conteo
+    } catch (error: any) {
+      Alert.alert('Error', 'No se pudo registrar tu voto: ' + error.message);
+    }
+  };
+
+  const openVoteModal = (budget: BudgetWithUserVote, vote: 'approve' | 'reject') => {
+    setSelectedBudgetForVote(budget);
+    setVoteType(vote);
+    setVoteComment('');
+    setVoteModalVisible(true);
+  };
+
+  const submitVoteWithComment = async () => {
+    if (!selectedBudgetForVote || !voteType) return;
+    
+    try {
+      await voteOnBudgetWithComment(selectedBudgetForVote.id, currentUserId, voteType, voteComment.trim() || undefined);
+      
+      Alert.alert('Voto registrado', 'Tu voto y comentario han sido registrados con éxito.');
+      setVoteModalVisible(false);
+      setVoteComment('');
+      fetchBudgets(); // Recargar presupuestos
     } catch (error: any) {
       Alert.alert('Error', 'No se pudo registrar tu voto: ' + error.message);
     }
@@ -152,7 +178,7 @@ export default function GroupDetailScreen() {
             <View style={styles.votesContainer}>
                 <Pressable 
                   style={[styles.voteButton, getVoteButtonStyle(item, 'approve'), { borderColor }]} 
-                  onPress={() => handleVote(item.id, 'approve')}
+                  onPress={() => openVoteModal(item, 'approve')}
                   disabled={item.status !== 'pending'}
                 >
                     <Text style={[styles.voteEmoji, { color: item.userVote === 'approve' ? 'white' : '#4CAF50' }]}>👍</Text>
@@ -163,7 +189,7 @@ export default function GroupDetailScreen() {
                 
                 <Pressable 
                   style={[styles.voteButton, getVoteButtonStyle(item, 'reject'), { borderColor }]} 
-                  onPress={() => handleVote(item.id, 'reject')}
+                  onPress={() => openVoteModal(item, 'reject')}
                   disabled={item.status !== 'pending'}
                 >
                     <Text style={[styles.voteEmoji, { color: item.userVote === 'reject' ? 'white' : '#F44336' }]}>👎</Text>
@@ -246,6 +272,70 @@ export default function GroupDetailScreen() {
           )}
         />
       )}
+
+      {/* Modal para votación con comentarios */}
+      <Modal
+        visible={voteModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setVoteModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: cardBackground }]}>
+            <View style={styles.modalHeader}>
+              <ThemedText type="title" style={[styles.modalTitle, { color: textColor }]}>
+                {voteType === 'approve' ? '👍 Aprobar' : '👎 Rechazar'} Presupuesto
+              </ThemedText>
+              <Pressable onPress={() => setVoteModalVisible(false)}>
+                <Text style={[styles.closeButton, { color: secondaryTextColor }]}>✕</Text>
+              </Pressable>
+            </View>
+            
+            {selectedBudgetForVote && (
+              <ThemedText style={[styles.modalSubtitle, { color: Colors.light.tint }]}>
+                {selectedBudgetForVote.title}
+              </ThemedText>
+            )}
+            
+            <View style={styles.commentSection}>
+              <ThemedText style={[styles.commentLabel, { color: textColor }]}>
+                Comentario (Opcional)
+              </ThemedText>
+              <TextInput
+                style={[styles.commentInput, { 
+                  backgroundColor: backgroundColor, 
+                  borderColor, 
+                  color: textColor 
+                }]}
+                value={voteComment}
+                onChangeText={setVoteComment}
+                placeholder="Explica tu razón para votar..."
+                placeholderTextColor={secondaryTextColor}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+            
+            <View style={styles.modalActions}>
+              <Pressable 
+                style={[styles.modalButton, styles.cancelButton]} 
+                onPress={() => setVoteModalVisible(false)}
+              >
+                <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
+              </Pressable>
+              <Pressable 
+                style={[styles.modalButton, styles.submitButton]} 
+                onPress={submitVoteWithComment}
+              >
+                <ThemedText style={styles.submitButtonText}>
+                  {voteType === 'approve' ? '👍 Aprobar' : '👎 Rechazar'}
+                </ThemedText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
@@ -433,5 +523,97 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 13,
     fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 24,
+    borderRadius: 20,
+    width: '90%',
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    padding: 4,
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  commentSection: {
+    marginBottom: 24,
+  },
+  commentLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  commentInput: {
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 12,
+    fontSize: 16,
+    minHeight: 100,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cancelButton: {
+    backgroundColor: '#f0f0f0',
+  },
+  submitButton: {
+    backgroundColor: Colors.light.tint,
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 }); 
