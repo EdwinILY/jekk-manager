@@ -1,4 +1,4 @@
-import { supabase } from "@/supabase";
+import { supabase } from "../../supabase";
 
 export const ObtenerIdAuthSupabase = async () => {
     const {
@@ -10,3 +10,5 @@ export const ObtenerIdAuthSupabase = async () => {
       return idAuthSupabase;
     }
   }
+
+export default {};

@@ -1,5 +1,4 @@
-import { supabase } from '@/supabase';
-
+import { supabase } from '../../supabase';
 
 export const updateUserDisplayName = async (
   userId: number,
@@ -31,7 +30,8 @@ export const updateUserDisplayName = async (
     console.error('Exception updating display name:', err);
     return { 
       success: false, 
-      error: (err as Error).message || 'Error desconocido al actualizar el nombre' 
-    };
+      error: (err as Error).message || 'Error desconocido al actualizar el nombre'    };
   }
 };
+
+export default {};

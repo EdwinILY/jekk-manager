@@ -5,3 +5,5 @@ export interface UserInterface {
     email: string;
     photo_url?: string;
 }
+
+export default {};

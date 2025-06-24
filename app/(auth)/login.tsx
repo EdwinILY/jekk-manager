@@ -1,23 +1,52 @@
+import * as Linking from 'expo-linking';
+import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, View, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { supabase } from '@/supabase';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ThemedText } from '../../components/ThemedText';
+import { ThemedView } from '../../components/ThemedView';
+import { useThemeColor } from '../../hooks/useThemeColor';
+import { supabase } from '../../supabase';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const tintColor = useThemeColor({}, 'tint');
+  const router = useRouter();
 
   const handleLogin = async () => {
+    setInfo(null);
     setLoading(true);
     setError(null);
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-    if (signInError) setError(signInError.message);
-    // TODO: handle successful login (e.g., navigation)
+    if (signInError) {
+      setError(signInError.message);
+    } else {
+      // Redirect to main tabs
+      router.replace('/');
+    }
+    setLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    setError(null);
+    setInfo(null);
+    if (!email) {
+      setError('Por favor ingresa tu correo');
+      return;
+    }
+    setLoading(true);
+    // Generate deep link to the reset-password route (group folders are omitted)
+    // Use non-leading slash for correct deep link without hash
+    const redirectUrl = Linking.createURL('reset-password');
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+    if (resetError) {
+      setError(resetError.message);
+    } else {
+      setInfo('Revisa tu correo para restablecer tu contraseña');
+    }
     setLoading(false);
   };
 
@@ -50,6 +79,7 @@ export default function LoginScreen() {
           />
         </View>
         {error && <ThemedText style={styles.error}>{error}</ThemedText>}
+        {info && <ThemedText style={styles.info}>{info}</ThemedText>}
         <TouchableOpacity
           style={[styles.button, { backgroundColor: tintColor }]}
           onPress={handleLogin}
@@ -61,14 +91,16 @@ export default function LoginScreen() {
             <ThemedText style={styles.buttonText}>Ingresar →</ThemedText>
           )}
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => {/* TODO: forgot password */}}>
-          <ThemedText style={[styles.link, { color: tintColor }]}>¿Olvidaste tu contraseña?</ThemedText>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => {/* TODO: register navigation */}}>
-          <ThemedText style={styles.link}>
-            ¿No tienes cuenta? <ThemedText type="link">Registrarse</ThemedText>
-          </ThemedText>
-        </TouchableOpacity>
+        <View style={styles.authLinks}>
+          <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
+            <ThemedText style={[styles.link, { color: tintColor }]}>¿Olvidaste tu contraseña?</ThemedText>
+          </TouchableOpacity>
+          <Link href="/register" asChild>
+            <TouchableOpacity style={styles.registerContainer}>
+              <ThemedText style={[styles.link]}>¿No tienes cuenta? <ThemedText style={[styles.link, { color: tintColor }]}>Registrarse</ThemedText></ThemedText>
+            </TouchableOpacity>
+          </Link>
+        </View>
       </View>
     </ThemedView>
   );
@@ -83,6 +115,7 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 20,
+
   },
   form: {
     width: '100%',
@@ -118,5 +151,21 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
     marginBottom: 10,
+  },
+  info: {
+    color: 'green',
+    marginBottom: 10,
+  },
+  authLinks: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 10,
+  },
+  forgotPassword: {
+    marginBottom: 2,
+  },
+  registerContainer: {
+    marginTop: 2,
   },
 });
