@@ -1,8 +1,8 @@
-import { supabase } from '@/supabase';
+import { decode } from 'base64-arraybuffer';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '../../supabase';
 import { IconItem } from '../Interfaces/IconItem.interface';
-import { decode } from 'base64-arraybuffer';
 
 
 type PickedImage = ImagePicker.ImagePickerAsset | null;
@@ -167,3 +167,5 @@ export const requestMediaPermissions = async (fromCamera: boolean): Promise<bool
 
   return permission.granted;
 };
+
+export default {};

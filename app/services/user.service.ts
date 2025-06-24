@@ -1,4 +1,4 @@
-import { supabase } from "@/supabase"
+import { supabase } from "../../supabase"
 import { UserInterface } from "../models/user.interfaz"
 
 export async function getUserById(id: number): Promise<UserInterface | null> {
@@ -7,9 +7,7 @@ export async function getUserById(id: number): Promise<UserInterface | null> {
   if (error) {
     console.error('Error al obtener usuario:', error)
     return null
-  }
-
-    return data as UserInterface;
+  }    return data as UserInterface;
 }
 
-
+export default {};

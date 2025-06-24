@@ -1,0 +1,15 @@
+-- Crea una función para insertar automáticamente en tu tabla personalizada
+create function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.users (uid, email)
+  values (new.id, new.email);
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Activa el trigger después de que se cree un usuario
+create trigger on_auth_user_created
+after insert on auth.users
+for each row
+execute procedure public.handle_new_user();
