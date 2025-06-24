@@ -1,7 +1,9 @@
 import { addBudgetAttachment, createBudget, uploadAttachment } from '@/app/services/groups.service';
+import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { supabase } from "@/supabase";
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -38,13 +40,20 @@ export default function CreateBudgetScreen() {
 
     setLoading(true);
     try {
+      // Obtener el UID del usuario autenticado
+      const uid = await ObtenerIdAuthSupabase();
+      if (!uid) throw new Error('No se pudo obtener el usuario autenticado.');
+      // Buscar el usuario por UID en la tabla users
+      const { data, error } = await supabase.from('users').select('id').eq('uid', uid).single();
+      if (error || !data) throw new Error('No se encontró el usuario en la base de datos.');
+      // Usar el id real en created_by
       const budgetData = {
         group_id: parseInt(groupId, 10),
         title,
         description,
         objective,
         amount: parseFloat(amount),
-        created_by: 1, // TODO: Reemplazar con el ID del usuario autenticado
+        created_by: data.id,
       };
       const newBudgetId = await createBudget(budgetData);
 

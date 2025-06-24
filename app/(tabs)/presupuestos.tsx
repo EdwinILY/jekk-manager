@@ -5,9 +5,11 @@ import { Swipeable } from 'react-native-gesture-handler';
 
 import { GroupSummary } from '@/app/models/group.interface';
 import { getGroupsByStatus, updateUserGroupStatus } from '@/app/services/groups.service';
+import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { supabase } from "@/supabase";
 import { IconSymbol } from '../../components/ui/IconSymbol';
 
 export default function PresupuestosScreen() {
@@ -16,17 +18,25 @@ export default function PresupuestosScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'active' | 'archived'>('active');
+  const [userId, setUserId] = useState<number | null>(null);
+
+  const fetchUserId = async () => {
+    const uid = await ObtenerIdAuthSupabase();
+    if (!uid) return;
+    const { data, error } = await supabase.from('users').select('id').eq('uid', uid).single();
+    if (!error && data) setUserId(data.id);
+  };
 
   const fetchGroups = async () => {
+    if (!userId) return;
+    setLoading(true);
     try {
-      // Cargar grupos activos y archivados por separado
-      const [activeData, archivedData] = await Promise.all([
-        getGroupsByStatus(1, 'active'), // TODO: usar ID real del usuario
-        getGroupsByStatus(1, 'archived') // TODO: usar ID real del usuario
+      const [active, archived] = await Promise.all([
+        getGroupsByStatus(userId, 'active'),
+        getGroupsByStatus(userId, 'archived')
       ]);
-      
-      setActiveGroups(activeData);
-      setArchivedGroups(archivedData);
+      setActiveGroups(active);
+      setArchivedGroups(archived);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -35,17 +45,20 @@ export default function PresupuestosScreen() {
   };
 
   useEffect(() => {
-    fetchGroups();
+    fetchUserId();
   }, []);
 
+  useEffect(() => {
+    fetchGroups();
+  }, [userId]);
+
   const handleArchiveGroup = async (groupId: number) => {
+    if (!userId) return;
     try {
       console.log('Archivando grupo:', groupId);
-      // Usar la función del servicio para archivar el grupo
-      await updateUserGroupStatus(groupId, 1, 'archived'); // TODO: usar ID real del usuario
+      await updateUserGroupStatus(groupId, userId, 'archived');
       console.log('Grupo archivado exitosamente');
 
-      // Recargar grupos después de archivar
       await fetchGroups();
     } catch (error: any) {
       console.error('Error archiving group:', error);
@@ -53,13 +66,12 @@ export default function PresupuestosScreen() {
   };
 
   const handleRestoreGroup = async (groupId: number) => {
+    if (!userId) return;
     try {
       console.log('Restaurando grupo:', groupId);
-      // Usar la función del servicio para restaurar el grupo
-      await updateUserGroupStatus(groupId, 1, 'active'); // TODO: usar ID real del usuario
+      await updateUserGroupStatus(groupId, userId, 'active');
       console.log('Grupo restaurado exitosamente');
 
-      // Recargar grupos después de restaurar
       await fetchGroups();
     } catch (error: any) {
       console.error('Error restoring group:', error);

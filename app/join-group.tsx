@@ -1,4 +1,5 @@
 import { joinGroupWithCode } from '@/app/services/groups.service';
+import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -6,6 +7,7 @@ import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { IconSymbol } from '../components/ui/IconSymbol';
+import { supabase } from "../supabase";
 
 export default function JoinGroupScreen() {
   const [inviteCode, setInviteCode] = useState('');
@@ -20,8 +22,13 @@ export default function JoinGroupScreen() {
     
     setLoading(true);
     try {
-        // TODO: Replace with actual logged-in user ID
-        const groupId = await joinGroupWithCode(1, code);
+        // Obtener el UID del usuario autenticado
+        const uid = await ObtenerIdAuthSupabase();
+        if (!uid) throw new Error('No se pudo obtener el usuario autenticado.');
+        // Buscar el usuario por UID en la tabla users
+        const { data, error } = await supabase.from('users').select('id').eq('uid', uid).single();
+        if (error || !data) throw new Error('No se encontró el usuario en la base de datos.');
+        const groupId = await joinGroupWithCode(data.id, code);
         Alert.alert('🎉 ¡Éxito!', 'Te has unido al grupo correctamente.', [
             { text: 'OK', onPress: () => router.replace(`/group/${groupId}`) }
         ]);

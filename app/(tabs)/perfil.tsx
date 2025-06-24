@@ -1,4 +1,5 @@
 import { getUserById } from "@/app/services/user.service";
+import { IconPickerModal } from "@/components/IconPickerModal";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -12,10 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { UserInterface } from "../models/user.interfaz";
-import { IconPickerModal } from "@/components/IconPickerModal";
-import { updateProfileWithDefaultIcon } from "../services/storage.service";
 import { updateUserDisplayName } from "../Interfaces/user.interface";
+import { UserInterface } from "../models/user.interfaz";
+import { updateProfileWithDefaultIcon } from "../services/storage.service";
 
 export default function PerfilScreen() {
   const [user, setUser] = useState<UserInterface | null>(null);
@@ -31,13 +31,19 @@ export default function PerfilScreen() {
   // Obtener el usuario con ID 1 al cargar el componente
   useEffect(() => {
     const fetchUser = async () => {
-      const data = await getUserById(1); // ID fijo por ahora
-      if (data) {
-        setUser(data);
-        setNewName(data.display_name);
+      // Obtener el UID del usuario autenticado
+      const uid = await import("../services/supa.service").then(m => m.ObtenerIdAuthSupabase()).catch(() => null);
+      if (!uid) return;
+      // Buscar el usuario por UID (hay que hacer una consulta a la tabla users)
+      const { data, error } = await import("@/supabase").then(m => m.supabase.from('users').select('*').eq('uid', uid).single());
+      if (error || !data) return;
+      // Ahora sí, obtener el usuario completo por id interno
+      const userData = await getUserById(data.id);
+      if (userData) {
+        setUser(userData);
+        setNewName(userData.display_name);
       }
     };
-
     fetchUser();
   }, []);
 

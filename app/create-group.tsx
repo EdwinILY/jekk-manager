@@ -1,7 +1,9 @@
 import { createGroup } from '@/app/services/groups.service';
+import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { supabase } from "@/supabase";
 import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
@@ -21,10 +23,17 @@ export default function CreateGroupScreen() {
 
     setLoading(true);
     try {
+      // Obtener el UID del usuario autenticado
+      const uid = await ObtenerIdAuthSupabase();
+      if (!uid) throw new Error('No se pudo obtener el usuario autenticado.');
+      // Buscar el usuario por UID en la tabla users
+      const { data, error } = await supabase.from('users').select('id').eq('uid', uid).single();
+      if (error || !data) throw new Error('No se encontró el usuario en la base de datos.');
+      // Usar el id real en created_by
       const groupData = {
         name: name.trim(),
         description: description.trim(),
-        created_by: 1, // TODO: Reemplazar con el ID del usuario autenticado
+        created_by: data.id,
       };
       const newGroupId = await createGroup(groupData);
       Alert.alert('Éxito', 'El grupo ha sido creado correctamente.', [

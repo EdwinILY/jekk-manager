@@ -1,5 +1,6 @@
 import { Budget } from '@/app/models/budget.interface';
 import { getBudgetAttachments, getBudgetsForGroup, getUserVote, isUserAdmin, updateBudgetStatus, voteOnBudget, voteOnBudgetWithComment } from '@/app/services/groups.service';
+import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -28,9 +29,7 @@ export default function GroupDetailScreen() {
   const [voteComment, setVoteComment] = useState('');
   const [activeSection, setActiveSection] = useState<'pending' | 'completed'>('pending');
   const router = useRouter();
-
-  // TODO: Reemplazar con el ID del usuario autenticado
-  const currentUserId = 1;
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   // Filtrar presupuestos por sección
   const pendingBudgets = budgets.filter(budget => 
@@ -49,7 +48,7 @@ export default function GroupDetailScreen() {
   const secondaryTextColor = useThemeColor({ light: '#666', dark: '#8e8e93' }, 'text');
 
   const fetchBudgets = async () => {
-    if (!id) return;
+    if (!id || !currentUserId) return;
     setLoading(true);
     try {
       const groupId = parseInt(id, 10);
@@ -83,10 +82,22 @@ export default function GroupDetailScreen() {
   };
 
   useEffect(() => {
+    const fetchUserId = async () => {
+      const uid = await ObtenerIdAuthSupabase();
+      if (!uid) return;
+      // Buscar el usuario por UID en la tabla users
+      const { data, error } = await supabase.from('users').select('id').eq('uid', uid).single();
+      if (!error && data) setCurrentUserId(data.id);
+    };
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
     fetchBudgets();
-  }, [id]);
+  }, [id, currentUserId]);
 
   const handleVote = async (budgetId: number, vote: 'approve' | 'reject') => {
+    if (!currentUserId) return;
     try {
       await voteOnBudget(budgetId, currentUserId, vote);
       Alert.alert('Voto registrado', 'Tu voto ha sido registrado con éxito.');
@@ -104,11 +115,9 @@ export default function GroupDetailScreen() {
   };
 
   const submitVoteWithComment = async () => {
-    if (!selectedBudgetForVote || !voteType) return;
-    
+    if (!selectedBudgetForVote || !voteType || !currentUserId) return;
     try {
       await voteOnBudgetWithComment(selectedBudgetForVote.id, currentUserId, voteType, voteComment.trim() || undefined);
-      
       Alert.alert('Voto registrado', 'Tu voto y comentario han sido registrados con éxito.');
       setVoteModalVisible(false);
       setVoteComment('');
@@ -119,6 +128,7 @@ export default function GroupDetailScreen() {
   };
 
   const handleStatusChange = async (budgetId: number, newStatus: string) => {
+    if (!currentUserId) return;
     try {
       await updateBudgetStatus(budgetId, newStatus, currentUserId);
       Alert.alert('Estado actualizado', 'El estado del presupuesto ha sido actualizado con éxito.');

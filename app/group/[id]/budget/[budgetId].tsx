@@ -1,4 +1,5 @@
 import { getBudgetAttachments, getBudgetsForGroup } from '@/app/services/groups.service';
+import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -25,10 +26,10 @@ export default function BudgetDetailScreen() {
   const [editImages, setEditImages] = useState<{ url: string, toDelete?: boolean }[]>([]);
   const [newImages, setNewImages] = useState<string[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   // Simulación: el usuario actual es admin o creador si su id es 1
-  const currentUserId = 1;
-  const isAdminOrCreator = budget && (budget.created_by === currentUserId);
+  const isAdminOrCreator = budget && currentUserId && (budget.created_by === currentUserId);
 
   // Colores adaptativos
   const backgroundColor = useThemeColor({}, 'background');
@@ -62,6 +63,17 @@ export default function BudgetDetailScreen() {
     };
     fetchData();
   }, [groupId, budgetId]);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const uid = await ObtenerIdAuthSupabase();
+      if (!uid) return;
+      // Buscar el usuario por UID en la tabla users
+      const { data, error } = await supabase.from('users').select('id').eq('uid', uid).single();
+      if (!error && data) setCurrentUserId(data.id);
+    };
+    fetchUserId();
+  }, []);
 
   const handlePickImages = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
