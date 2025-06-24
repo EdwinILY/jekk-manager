@@ -22,10 +22,20 @@ export default function GroupDetailScreen() {
   const [selectedBudgetForVote, setSelectedBudgetForVote] = useState<BudgetWithUserVote | null>(null);
   const [voteType, setVoteType] = useState<'approve' | 'reject' | null>(null);
   const [voteComment, setVoteComment] = useState('');
+  const [activeSection, setActiveSection] = useState<'pending' | 'completed' | 'archived'>('pending');
   const router = useRouter();
 
   // TODO: Reemplazar con el ID del usuario autenticado
   const currentUserId = 1;
+
+  // Filtrar presupuestos por sección
+  const pendingBudgets = budgets.filter(budget => 
+    ['draft', 'pending'].includes(budget.status)
+  );
+  
+  const completedBudgets = budgets.filter(budget => 
+    ['approved', 'rejected', 'executing', 'completed', 'cancelled'].includes(budget.status)
+  );
 
   // Colores del tema
   const backgroundColor = useThemeColor({}, 'background');
@@ -111,6 +121,27 @@ export default function GroupDetailScreen() {
     }
   };
 
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'draft':
+        return { text: '📝 Borrador', color: '#666' };
+      case 'pending':
+        return { text: '⏳ En Votación', color: '#f39c12' };
+      case 'approved':
+        return { text: '✅ Aprobado', color: '#27ae60' };
+      case 'rejected':
+        return { text: '❌ Rechazado', color: '#e74c3c' };
+      case 'executing':
+        return { text: '🚀 En Ejecución', color: '#3498db' };
+      case 'completed':
+        return { text: '🎉 Completado', color: '#27ae60' };
+      case 'cancelled':
+        return { text: '🚫 Cancelado', color: '#95a5a6' };
+      default:
+        return { text: status, color: '#666' };
+    }
+  };
+
   const getStatusStyle = (status: string) => {
     switch (status) {
         case 'approved': return { color: 'green' };
@@ -146,23 +177,18 @@ export default function GroupDetailScreen() {
     <ThemedView style={[styles.budgetItem, { backgroundColor: cardBackground, borderColor }]}>
         <View style={styles.budgetHeader}>
             <View style={styles.titleContainer}>
-                <ThemedText type="subtitle" style={[styles.budgetTitle, { color: textColor }]}>{item.title}</ThemedText>
+                <ThemedText type="title" style={[styles.budgetTitle, { color: textColor }]}>
+                    {item.title}
+                </ThemedText>
             </View>
-            <ThemedText style={[styles.amount, { color: Colors.light.tint }]}>${item.amount.toFixed(2)}</ThemedText>
-        </View>
-        
-        <View style={styles.statusContainer}>
-            <View style={[styles.statusBadge, getStatusBadgeStyle(item.status)]}>
-                <ThemedText style={styles.statusBadgeText}>
-                  {item.status === 'draft' && 'Borrador'}
-                  {item.status === 'pending' && 'En Votación'}
-                  {item.status === 'approved' && 'Aprobado'}
-                  {item.status === 'rejected' && 'Rechazado'}
-                  {item.status === 'executing' && 'En Ejecución'}
-                  {item.status === 'completed' && 'Completado'}
+            <View style={[styles.statusBadge, { backgroundColor: getStatusDisplay(item.status).color + '20' }]}>
+                <ThemedText style={[styles.statusText, { color: getStatusDisplay(item.status).color }]}>
+                    {getStatusDisplay(item.status).text}
                 </ThemedText>
             </View>
         </View>
+        
+        <ThemedText style={[styles.amount, { color: Colors.light.tint }]}>${item.amount.toFixed(2)}</ThemedText>
         
         <ThemedText style={[styles.objective, { color: secondaryTextColor }]}>{item.objective}</ThemedText>
         
@@ -241,34 +267,80 @@ export default function GroupDetailScreen() {
           ),
         }} 
       />
+      <ThemedText type="title" style={[styles.title, { color: textColor }]}>
+        Presupuestos del Grupo
+      </ThemedText>
+      
+      {/* Botón de crear presupuesto - arriba de las secciones */}
+      <View style={styles.createButtonContainer}>
+        <Pressable 
+          style={[styles.createButton, { backgroundColor: Colors.light.tint }]}
+          onPress={() => router.push(`/group/${id}/create-budget`)}
+        >
+          <ThemedText style={styles.createButtonText}>➕ Crear Presupuesto</ThemedText>
+        </Pressable>
+      </View>
+      
+      {/* Pestañas de secciones */}
+      <View style={[styles.tabContainer, { borderColor }]}>
+        <Pressable 
+          style={[
+            styles.tab, 
+            activeSection === 'pending' && styles.activeTab,
+            { borderColor }
+          ]}
+          onPress={() => setActiveSection('pending')}
+        >
+          <ThemedText style={[
+            styles.tabText, 
+            activeSection === 'pending' && styles.activeTabText,
+            { color: activeSection === 'pending' ? 'white' : '#555' }
+          ]}>
+            📋 En Votación ({pendingBudgets.length})
+          </ThemedText>
+        </Pressable>
+        
+        <Pressable 
+          style={[
+            styles.tab, 
+            activeSection === 'completed' && styles.activeTab,
+            { borderColor }
+          ]}
+          onPress={() => setActiveSection('completed')}
+        >
+          <ThemedText style={[
+            styles.tabText, 
+            activeSection === 'completed' && styles.activeTabText,
+            { color: activeSection === 'completed' ? 'white' : '#555' }
+          ]}>
+            ✅ Completados ({completedBudgets.length})
+          </ThemedText>
+        </Pressable>
+      </View>
+
       {loading ? (
         <ActivityIndicator size="large" />
       ) : error ? (
-        <Text style={{color: 'red'}}>{error}</Text>
+        <ThemedText style={[styles.errorText, { color: 'red' }]}>{error}</ThemedText>
       ) : (
         <FlatList
-          data={budgets}
-          renderItem={renderBudgetItem}
+          data={activeSection === 'pending' ? pendingBudgets : completedBudgets}
           keyExtractor={(item) => item.id.toString()}
-          ListHeaderComponent={() => (
-            <View style={styles.headerContainer}>
-              <ThemedText type="title">Presupuestos</ThemedText>
-              <Link href={`/group/${id}/create-budget`} asChild>
-                <Pressable style={styles.createButton}>
-                  <ThemedText style={styles.createButtonText}>+ Crear</ThemedText>
-                </Pressable>
-              </Link>
-            </View>
-          )}
+          renderItem={renderBudgetItem}
           ListEmptyComponent={() => (
-            <ThemedView style={styles.emptyContainer}>
-              <ThemedText style={styles.emptyText}>Este grupo aún no tiene presupuestos.</ThemedText>
-              <Link href={`/group/${id}/create-budget`} asChild>
-                  <Pressable style={styles.createButton}>
-                    <ThemedText style={styles.createButtonText}>Crear el primero</ThemedText>
-                  </Pressable>
-              </Link>
-            </ThemedView>
+            <View style={styles.emptyContainer}>
+              <ThemedText style={[styles.emptyText, { color: secondaryTextColor }]}>
+                {activeSection === 'pending' 
+                  ? '📋 No hay presupuestos en votación' 
+                  : '✅ No hay presupuestos completados'
+                }
+              </ThemedText>
+              {activeSection === 'pending' && (
+                <ThemedText style={[styles.emptySubtext, { color: secondaryTextColor }]}>
+                  Crea un nuevo presupuesto para comenzar
+                </ThemedText>
+              )}
+            </View>
           )}
         />
       )}
@@ -363,7 +435,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   titleContainer: {
     flex: 1,
@@ -373,37 +445,34 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   budgetTitle: {
-    fontWeight: 'bold',
     fontSize: 18,
+    fontWeight: 'bold',
     flex: 1,
+    marginRight: 12,
   },
   statusContainer: {
     marginBottom: 12,
     alignItems: 'flex-start',
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
-  statusBadgeText: {
-    fontSize: 11,
+  statusText: {
+    fontSize: 12,
     fontWeight: 'bold',
-    color: 'white',
   },
   amount: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.light.tint,
-    textAlign: 'right',
+    marginBottom: 8,
   },
   objective: {
-    fontStyle: 'italic',
-    marginBottom: 16,
-    color: '#666',
-    lineHeight: 20,
     fontSize: 14,
+    marginBottom: 16,
+    lineHeight: 20,
   },
   votingSection: {
     marginTop: 12,
@@ -463,40 +532,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  createButtonContainer: {
+    marginBottom: 16,
     alignItems: 'center',
-    marginBottom: 24,
   },
   createButton: {
-    backgroundColor: Colors.light.tint,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 12,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 4,
+    elevation: 3,
   },
   createButtonText: {
-    color: '#fff',
+    color: 'white',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 16,
   },
   emptyContainer: {
+    padding: 40,
     alignItems: 'center',
-    marginTop: 60,
-    gap: 24,
+    justifyContent: 'center',
   },
   emptyText: {
     textAlign: 'center',
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#999',
   },
   adminActions: {
     marginTop: 16,
@@ -615,5 +688,53 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  activeTab: {
+    backgroundColor: Colors.light.tint,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  tabText: {
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  activeTabText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  errorText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
   },
 }); 
