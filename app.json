@@ -49,10 +49,23 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      [
+        "expo-barcode-scanner",
+        {
+          "cameraPermission": "Allow JEKK-MANAGER to access camera."
+        }
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c7f7f9ad-d710-45dc-8c36-161b0c121832"
+      }
     }
   }
 }
