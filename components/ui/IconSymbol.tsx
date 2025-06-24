@@ -31,6 +31,9 @@ const MAPPING: Record<string, string> = {
   'hand.wave.fill': 'waving-hand',
   'folder.fill': 'folder',
   'arrow.clockwise': 'restore',
+  'image': 'image',
+  'delete': 'delete',
+  'edit': 'edit',
 };
 
 /**
