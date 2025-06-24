@@ -10,22 +10,22 @@ export default function AuthLayout() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const router = useRouter();
   const colorScheme = useColorScheme();
-
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        router.replace('/');
+      }
+    });
+    
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, [router]);
 
   // Wait for auth state
   if (session === undefined) return null;
-  // If already logged in, go to main app
-  if (session) {
-    router.replace('/');
-    return null;
-  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
