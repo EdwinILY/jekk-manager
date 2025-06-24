@@ -1,116 +1,123 @@
 import { Link, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 
 import { GroupSummary } from '@/app/models/group.interface';
-import { getGroupsSummary, updateUserGroupStatus } from '@/app/services/groups.service';
+import { getGroupsByStatus, updateUserGroupStatus } from '@/app/services/groups.service';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 
 export default function PresupuestosScreen() {
-  const [groups, setGroups] = useState<GroupSummary[]>([]);
+  const [activeGroups, setActiveGroups] = useState<GroupSummary[]>([]);
+  const [archivedGroups, setArchivedGroups] = useState<GroupSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'active' | 'archived'>('active');
 
-  useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        // TODO: Replace with actual logged-in user ID
-        const data = await getGroupsSummary(1);
-        setGroups(data);
-      } catch (e: any) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchGroups = async () => {
+    try {
+      // Cargar grupos activos y archivados por separado
+      const [activeData, archivedData] = await Promise.all([
+        getGroupsByStatus(1, 'active'), // TODO: usar ID real del usuario
+        getGroupsByStatus(1, 'archived') // TODO: usar ID real del usuario
+      ]);
+      
+      setActiveGroups(activeData);
+      setArchivedGroups(archivedData);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchGroups();
   }, []);
 
-  // Filtrar grupos por sección
-  const activeGroups = groups.filter(group => 
-    !group.user_status || group.user_status === 'active'
-  );
-  
-  const archivedGroups = groups.filter(group => 
-    group.user_status === 'archived'
-  );
-
   const handleArchiveGroup = async (groupId: number) => {
     try {
+      console.log('Archivando grupo:', groupId);
+      // Usar la función del servicio para archivar el grupo
       await updateUserGroupStatus(groupId, 1, 'archived'); // TODO: usar ID real del usuario
+      console.log('Grupo archivado exitosamente');
+
       // Recargar grupos después de archivar
-      const data = await getGroupsSummary(1);
-      setGroups(data);
+      await fetchGroups();
     } catch (error: any) {
       console.error('Error archiving group:', error);
-      // Por ahora solo simulamos el cambio en caso de error
-      setGroups(prevGroups => 
-        prevGroups.map(group => 
-          group.id === groupId 
-            ? { ...group, user_status: 'archived' }
-            : group
-        )
-      );
     }
   };
 
   const handleRestoreGroup = async (groupId: number) => {
     try {
+      console.log('Restaurando grupo:', groupId);
+      // Usar la función del servicio para restaurar el grupo
       await updateUserGroupStatus(groupId, 1, 'active'); // TODO: usar ID real del usuario
+      console.log('Grupo restaurado exitosamente');
+
       // Recargar grupos después de restaurar
-      const data = await getGroupsSummary(1);
-      setGroups(data);
+      await fetchGroups();
     } catch (error: any) {
       console.error('Error restoring group:', error);
-      // Por ahora solo simulamos el cambio en caso de error
-      setGroups(prevGroups => 
-        prevGroups.map(group => 
-          group.id === groupId 
-            ? { ...group, user_status: 'active' }
-            : group
-        )
-      );
     }
   };
 
-  const renderGroupItem = ({ item }: { item: GroupSummary }) => (
-    <ThemedView style={styles.groupItem}>
-      <Link href={`/group/${item.id}`} asChild>
-        <Pressable style={styles.groupContent}>
-          <ThemedText type="subtitle">{item.name}</ThemedText>
-          <ThemedText>Creado por: {item.created_by_name}</ThemedText>
-          <ThemedText style={styles.groupDetails}>
-            {item.member_count} miembro(s) • {item.active_budgets} presupuesto(s) activo(s)
-          </ThemedText>
-        </Pressable>
-      </Link>
-      
-      {/* Botones de acción */}
-      <View style={styles.groupActions}>
-        {activeSection === 'active' && (
-          <Pressable 
-            style={[styles.actionButton, styles.archiveButton]}
-            onPress={() => handleArchiveGroup(item.id)}
-          >
-            <ThemedText style={styles.actionButtonText}>📁 Archivar</ThemedText>
+  const renderGroupItem = ({ item }: { item: GroupSummary }) => {
+    const renderRightActions = (progress: any, dragX: any) => {
+      return (
+        <View style={styles.swipeActions}>
+          {activeSection === 'active' ? (
+            <Pressable 
+              style={[styles.swipeButton, styles.archiveSwipeButton]}
+              onPress={() => handleArchiveGroup(item.id)}
+            >
+              <ThemedText style={styles.swipeButtonText}>📁</ThemedText>
+              <ThemedText style={styles.swipeButtonLabel}>Archivar</ThemedText>
+            </Pressable>
+          ) : (
+            <Pressable 
+              style={[styles.swipeButton, styles.restoreSwipeButton]}
+              onPress={() => handleRestoreGroup(item.id)}
+            >
+              <ThemedText style={styles.swipeButtonText}>🔄</ThemedText>
+              <ThemedText style={styles.swipeButtonLabel}>Restaurar</ThemedText>
+            </Pressable>
+          )}
+        </View>
+      );
+    };
+
+    return (
+      <Swipeable
+        renderRightActions={renderRightActions}
+        rightThreshold={40}
+      >
+        <Link href={`/group/${item.id}`} asChild>
+          <Pressable style={styles.groupCard}>
+            <View style={styles.cardContent}>
+              <View style={styles.groupInfo}>
+                <View style={styles.groupHeader}>
+                  <ThemedText style={styles.groupName}>🏠 {item.name}</ThemedText>
+                  <ThemedText style={styles.groupStat}>👥 {item.member_count}</ThemedText>
+                </View>
+                <ThemedText style={styles.groupCreator}>👤 Creado por: {item.created_by_name}</ThemedText>
+              </View>
+              <View style={styles.cardActions}>
+                <Link href={`/group/${item.id}/invite`} asChild>
+                  <Pressable style={styles.actionButton}>
+                    <ThemedText style={styles.actionButtonText}>📨</ThemedText>
+                  </Pressable>
+                </Link>
+              </View>
+            </View>
           </Pressable>
-        )}
-        
-        {activeSection === 'archived' && (
-          <Pressable 
-            style={[styles.actionButton, styles.restoreButton]}
-            onPress={() => handleRestoreGroup(item.id)}
-          >
-            <ThemedText style={styles.actionButtonText}>🔄 Restaurar</ThemedText>
-          </Pressable>
-        )}
-      </View>
-    </ThemedView>
-  );
+        </Link>
+      </Swipeable>
+    );
+  };
 
   if (loading) {
     return (
@@ -135,15 +142,15 @@ export default function PresupuestosScreen() {
         options={{ 
           title: 'Mis Grupos',
           headerRight: () => (
-            <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
               <Link href="/create-group" asChild>
-                <Pressable>
-                  <ThemedText style={{ color: Colors.light.tint, fontSize: 16 }}>Crear</ThemedText>
+                <Pressable style={styles.headerButton}>
+                  <ThemedText style={styles.headerButtonText}>➕ Crear</ThemedText>
                 </Pressable>
               </Link>
               <Link href="/join-group" asChild>
-                <Pressable>
-                  <ThemedText style={{ color: Colors.light.tint, fontSize: 16 }}>Unirse</ThemedText>
+                <Pressable style={styles.headerButton}>
+                  <ThemedText style={styles.headerButtonText}>🔗 Unirse</ThemedText>
                 </Pressable>
               </Link>
             </View>
@@ -212,50 +219,74 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 20,
   },
-  groupItem: {
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: Colors.light.icon,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  groupContent: {
-    flex: 1,
-  },
-  groupDetails: {
-    marginTop: 5,
-    fontSize: 12,
-    color: Colors.light.tint,
-  },
-  groupActions: {
-    marginLeft: 10,
-  },
-  actionButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+  groupCard: {
+    backgroundColor: 'white',
+    marginHorizontal: 16,
+    marginVertical: 6,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
     shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  groupInfo: {
+    flex: 1,
+  },
+  groupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  groupName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    flex: 1,
+  },
+  groupStat: {
+    fontSize: 14,
+    color: Colors.light.tint,
+    fontWeight: '600',
+  },
+  groupCreator: {
+    fontSize: 13,
+    color: '#7f8c8d',
+    fontWeight: '500',
+  },
+  cardActions: {
+    marginLeft: 12,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.light.tint,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
   actionButtonText: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
-  },
-  archiveButton: {
-    backgroundColor: '#95a5a6',
-  },
-  restoreButton: {
-    backgroundColor: '#27ae60',
   },
   emptyText: {
     textAlign: 'center',
@@ -298,5 +329,44 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  headerButton: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: Colors.light.tint,
+  },
+  headerButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  swipeActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  swipeButton: {
+    width: 80,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 8,
+  },
+  archiveSwipeButton: {
+    backgroundColor: '#95a5a6',
+  },
+  restoreSwipeButton: {
+    backgroundColor: '#27ae60',
+  },
+  swipeButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 4,
+  },
+  swipeButtonLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'white',
   },
 });

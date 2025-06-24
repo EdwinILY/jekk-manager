@@ -3,7 +3,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -42,20 +42,46 @@ export default function InviteScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: 'Invitar a Miembros' }} />
       {loading ? (
-        <ActivityIndicator size="large" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+          <ThemedText style={styles.loadingText}>🎯 Generando código...</ThemedText>
+        </View>
       ) : inviteCode ? (
         <>
-          <ThemedText type="subtitle">Comparte este código QR o el código de texto para invitar a nuevos miembros a tu grupo.</ThemedText>
-          <View style={styles.qrContainer}>
-            <QRCode value={inviteCode} size={250} />
+          <View style={styles.header}>
+            <ThemedText type="title" style={styles.title}>📨 Invitar Miembros</ThemedText>
+            <ThemedText style={styles.subtitle}>Comparte este código para invitar a nuevos miembros a tu grupo</ThemedText>
           </View>
-          <ThemedText style={styles.inviteCode}>{inviteCode}</ThemedText>
+          
+          <View style={styles.qrSection}>
+            <ThemedText style={styles.sectionTitle}>📱 Código QR</ThemedText>
+            <View style={styles.qrContainer}>
+              <QRCode value={inviteCode} size={250} />
+            </View>
+          </View>
+          
+          <View style={styles.codeSection}>
+            <ThemedText style={styles.sectionTitle}>🎫 Código de Texto</ThemedText>
+            <View style={styles.codeContainer}>
+              <ThemedText style={styles.inviteCode}>{inviteCode}</ThemedText>
+            </View>
+          </View>
+          
           <Pressable style={styles.shareButton} onPress={onShare}>
-            <ThemedText style={styles.shareButtonText}>Compartir Código</ThemedText>
+            <ThemedText style={styles.shareButtonText}>📤 Compartir Código</ThemedText>
           </Pressable>
+          
+          <View style={styles.infoSection}>
+            <ThemedText style={styles.infoText}>💡 Cómo usar:</ThemedText>
+            <ThemedText style={styles.infoItem}>• Muestra el QR para que lo escaneen</ThemedText>
+            <ThemedText style={styles.infoItem}>• O comparte el código de texto</ThemedText>
+            <ThemedText style={styles.infoItem}>• Los nuevos miembros se unirán automáticamente</ThemedText>
+          </View>
         </>
       ) : (
-        <ThemedText>No se pudo generar un código de invitación.</ThemedText>
+        <View style={styles.errorContainer}>
+          <ThemedText style={styles.errorText}>❌ No se pudo generar un código de invitación.</ThemedText>
+        </View>
       )}
     </ThemedView>
   );
@@ -89,5 +115,66 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-  }
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 20,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  header: {
+    alignItems: 'center',
+    gap: 10,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  qrSection: {
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  codeSection: {
+    alignItems: 'center',
+  },
+  codeContainer: {
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+  },
+  infoSection: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  infoText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  infoItem: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'red',
+  },
 }); 

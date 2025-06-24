@@ -16,6 +16,20 @@ export const getGroupsSummary = async (userId: number): Promise<GroupSummary[]> 
   return data as GroupSummary[];
 };
 
+export const getGroupsByStatus = async (userId: number, status: 'active' | 'archived'): Promise<GroupSummary[]> => {
+  const { data, error } = await supabase.rpc('get_groups_by_user_status', { 
+    p_user_id: userId, 
+    p_status: status 
+  });
+
+  if (error) {
+    console.error('Error fetching groups by status:', error);
+    throw new Error(error.message);
+  }
+
+  return data as GroupSummary[];
+};
+
 export const getBudgetsForGroup = async (groupId: number): Promise<Budget[]> => {
   const { data, error } = await supabase.rpc('get_budgets_for_group', { p_group_id: groupId });
 
