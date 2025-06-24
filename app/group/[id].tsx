@@ -1,11 +1,12 @@
 import { Budget } from '@/app/models/budget.interface';
-import { getBudgetsForGroup, getBudgetVotes, getUserVote, isUserAdmin, updateBudgetStatus, voteOnBudget } from '@/app/services/groups.service';
+import { getBudgetsForGroup, getUserVote, isUserAdmin, updateBudgetStatus, voteOnBudget } from '@/app/services/groups.service';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface BudgetWithUserVote extends Budget {
   userVote?: 'approve' | 'reject' | null;
@@ -17,13 +18,17 @@ export default function GroupDetailScreen() {
   const [budgets, setBudgets] = useState<BudgetWithUserVote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedBudget, setSelectedBudget] = useState<BudgetWithUserVote | null>(null);
-  const [votesModalVisible, setVotesModalVisible] = useState(false);
-  const [votesHistory, setVotesHistory] = useState<any[]>([]);
   const router = useRouter();
 
   // TODO: Reemplazar con el ID del usuario autenticado
   const currentUserId = 1;
+
+  // Colores del tema
+  const backgroundColor = useThemeColor({}, 'background');
+  const cardBackground = useThemeColor({ light: '#ffffff', dark: '#1c1c1e' }, 'background');
+  const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#38383a' }, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const secondaryTextColor = useThemeColor({ light: '#666', dark: '#8e8e93' }, 'text');
 
   const fetchBudgets = async () => {
     if (!id) return;
@@ -80,17 +85,6 @@ export default function GroupDetailScreen() {
     }
   };
 
-  const showVotesHistory = async (budget: BudgetWithUserVote) => {
-    try {
-      const votes = await getBudgetVotes(budget.id);
-      setVotesHistory(votes);
-      setSelectedBudget(budget);
-      setVotesModalVisible(true);
-    } catch (error: any) {
-      Alert.alert('Error', 'No se pudo cargar el historial de votos: ' + error.message);
-    }
-  };
-
   const getStatusStyle = (status: string) => {
     switch (status) {
         case 'approved': return { color: 'green' };
@@ -111,98 +105,100 @@ export default function GroupDetailScreen() {
     };
   };
 
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status) {
+        case 'approved': return { backgroundColor: 'green' };
+        case 'rejected': return { backgroundColor: 'red' };
+        case 'pending': return { backgroundColor: 'orange' };
+        case 'executing': return { backgroundColor: 'blue' };
+        case 'completed': return { backgroundColor: 'purple' };
+        default: return {};
+    }
+  };
+
   const renderBudgetItem = ({ item }: { item: BudgetWithUserVote }) => (
-    <ThemedView style={styles.budgetItem}>
-        <View>
-            <ThemedText type="subtitle">{item.title}</ThemedText>
-            <ThemedText style={styles.objective}>{item.objective}</ThemedText>
-            <ThemedText style={styles.amount}>${item.amount.toFixed(2)}</ThemedText>
+    <ThemedView style={[styles.budgetItem, { backgroundColor: cardBackground, borderColor }]}>
+        <View style={styles.budgetHeader}>
+            <View style={styles.titleContainer}>
+                <ThemedText type="subtitle" style={[styles.budgetTitle, { color: textColor }]}>{item.title}</ThemedText>
+            </View>
+            <ThemedText style={[styles.amount, { color: Colors.light.tint }]}>${item.amount.toFixed(2)}</ThemedText>
         </View>
         
-        <View style={styles.footer}>
-            <ThemedText style={[styles.status, getStatusStyle(item.status)]}>
-              {item.status === 'draft' && 'Borrador'}
-              {item.status === 'pending' && 'En Votación'}
-              {item.status === 'approved' && 'Aprobado'}
-              {item.status === 'rejected' && 'Rechazado'}
-              {item.status === 'executing' && 'En Ejecución'}
-              {item.status === 'completed' && 'Completado'}
-            </ThemedText>
-            
+        <View style={styles.statusContainer}>
+            <View style={[styles.statusBadge, getStatusBadgeStyle(item.status)]}>
+                <ThemedText style={styles.statusBadgeText}>
+                  {item.status === 'draft' && 'Borrador'}
+                  {item.status === 'pending' && 'En Votación'}
+                  {item.status === 'approved' && 'Aprobado'}
+                  {item.status === 'rejected' && 'Rechazado'}
+                  {item.status === 'executing' && 'En Ejecución'}
+                  {item.status === 'completed' && 'Completado'}
+                </ThemedText>
+            </View>
+        </View>
+        
+        <ThemedText style={[styles.objective, { color: secondaryTextColor }]}>{item.objective}</ThemedText>
+        
+        <View style={styles.votingSection}>
+            <View style={styles.votingHeader}>
+                <ThemedText style={[styles.votingTitle, { color: textColor }]}>Votación</ThemedText>
+                <Link href={`/group/${id}/vote-stats?budgetId=${item.id}&budgetTitle=${encodeURIComponent(item.title)}`} asChild>
+                  <Pressable style={[styles.statsButton, { backgroundColor: cardBackground, borderColor }]}>
+                    <Text style={styles.statsIcon}>📊</Text>
+                  </Pressable>
+                </Link>
+            </View>
             <View style={styles.votesContainer}>
                 <Pressable 
-                  style={getVoteButtonStyle(item, 'approve')} 
+                  style={[styles.voteButton, getVoteButtonStyle(item, 'approve'), { borderColor }]} 
                   onPress={() => handleVote(item.id, 'approve')}
                   disabled={item.status !== 'pending'}
                 >
-                    <Text style={{ color: item.userVote === 'approve' ? 'white' : 'black' }}>👍</Text>
+                    <Text style={[styles.voteEmoji, { color: item.userVote === 'approve' ? 'white' : '#4CAF50' }]}>👍</Text>
+                    <ThemedText style={[styles.voteCount, { color: item.userVote === 'approve' ? 'white' : '#4CAF50' }]}>
+                      {item.approve_votes}
+                    </ThemedText>
                 </Pressable>
-                <ThemedText style={styles.votes}>{item.approve_votes}</ThemedText>
                 
                 <Pressable 
-                  style={getVoteButtonStyle(item, 'reject')} 
+                  style={[styles.voteButton, getVoteButtonStyle(item, 'reject'), { borderColor }]} 
                   onPress={() => handleVote(item.id, 'reject')}
                   disabled={item.status !== 'pending'}
                 >
-                    <Text style={{ color: item.userVote === 'reject' ? 'white' : 'black' }}>👎</Text>
+                    <Text style={[styles.voteEmoji, { color: item.userVote === 'reject' ? 'white' : '#F44336' }]}>👎</Text>
+                    <ThemedText style={[styles.voteCount, { color: item.userVote === 'reject' ? 'white' : '#F44336' }]}>
+                      {item.reject_votes}
+                    </ThemedText>
                 </Pressable>
-                <ThemedText style={styles.votes}>{item.reject_votes}</ThemedText>
-                
-                <Pressable onPress={() => showVotesHistory(item)} style={styles.historyButton}>
-                    <Text>📊</Text>
-                </Pressable>
-                <Link href={`/group/${id}/vote-stats?budgetId=${item.id}&budgetTitle=${encodeURIComponent(item.title)}`} asChild>
-                  <Pressable style={styles.statsButton}>
-                    <Text>📈</Text>
-                  </Pressable>
-                </Link>
             </View>
         </View>
         
         {item.isAdmin && (
           <View style={styles.adminActions}>
               {item.status === 'draft' && (
-                  <Pressable style={styles.actionButton} onPress={() => handleStatusChange(item.id, 'pending')}>
-                      <ThemedText style={styles.actionButtonText}>Enviar a Votación</ThemedText>
+                  <Pressable style={styles.adminButton} onPress={() => handleStatusChange(item.id, 'pending')}>
+                      <ThemedText style={styles.adminButtonText}>📤 Enviar a Votación</ThemedText>
                   </Pressable>
               )}
               {item.status === 'pending' && item.approve_votes > item.reject_votes && (
-                  <Pressable style={styles.actionButton} onPress={() => handleStatusChange(item.id, 'approved')}>
-                      <ThemedText style={styles.actionButtonText}>Aprobar</ThemedText>
+                  <Pressable style={styles.adminButton} onPress={() => handleStatusChange(item.id, 'approved')}>
+                      <ThemedText style={styles.adminButtonText}>✅ Aprobar</ThemedText>
                   </Pressable>
               )}
               {item.status === 'approved' && (
-                  <Pressable style={styles.actionButton} onPress={() => handleStatusChange(item.id, 'executing')}>
-                      <ThemedText style={styles.actionButtonText}>Iniciar Ejecución</ThemedText>
+                  <Pressable style={styles.adminButton} onPress={() => handleStatusChange(item.id, 'executing')}>
+                      <ThemedText style={styles.adminButtonText}>🚀 Iniciar Ejecución</ThemedText>
                   </Pressable>
               )}
               {item.status === 'executing' && (
-                  <Pressable style={styles.actionButton} onPress={() => handleStatusChange(item.id, 'completed')}>
-                      <ThemedText style={styles.actionButtonText}>Marcar Completado</ThemedText>
+                  <Pressable style={styles.adminButton} onPress={() => handleStatusChange(item.id, 'completed')}>
+                      <ThemedText style={styles.adminButtonText}>🏁 Marcar Completado</ThemedText>
                   </Pressable>
               )}
           </View>
         )}
     </ThemedView>
-  );
-
-  const renderVoteItem = ({ item }: { item: any }) => (
-    <View style={styles.voteItem}>
-      <View style={styles.voteUserInfo}>
-        <ThemedText style={styles.voteUserName}>{item.users?.display_name || 'Usuario'}</ThemedText>
-        <ThemedText style={styles.voteDate}>
-          {new Date(item.voted_at).toLocaleDateString()}
-        </ThemedText>
-      </View>
-      <View style={styles.voteInfo}>
-        <Text style={styles.voteEmoji}>
-          {item.vote === 'approve' ? '👍' : '👎'}
-        </Text>
-        {item.comment && (
-          <ThemedText style={styles.voteComment}>{item.comment}</ThemedText>
-        )}
-      </View>
-    </View>
   );
 
   return (
@@ -250,43 +246,6 @@ export default function GroupDetailScreen() {
           )}
         />
       )}
-
-      {/* Modal para mostrar historial de votos */}
-      <Modal
-        visible={votesModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setVotesModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <ThemedText type="title">Historial de Votos</ThemedText>
-              <Pressable onPress={() => setVotesModalVisible(false)}>
-                <Text style={styles.closeButton}>✕</Text>
-              </Pressable>
-            </View>
-            
-            {selectedBudget && (
-              <ThemedText style={styles.modalSubtitle}>
-                {selectedBudget.title}
-              </ThemedText>
-            )}
-            
-            <FlatList
-              data={votesHistory}
-              renderItem={renderVoteItem}
-              keyExtractor={(item, index) => index.toString()}
-              style={styles.votesList}
-              ListEmptyComponent={() => (
-                <ThemedText style={styles.emptyVotesText}>
-                  Aún no hay votos registrados.
-                </ThemedText>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
     </ThemedView>
   );
 }
@@ -297,53 +256,142 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   budgetItem: {
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.light.icon,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  budgetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  titleContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  budgetTitle: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    flex: 1,
+  },
+  statusContainer: {
+    marginBottom: 12,
+    alignItems: 'flex-start',
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#f0f0f0',
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  amount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.light.tint,
+    textAlign: 'right',
   },
   objective: {
     fontStyle: 'italic',
-    marginBottom: 10,
+    marginBottom: 16,
+    color: '#666',
+    lineHeight: 20,
+    fontSize: 14,
   },
-  amount: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  votingSection: {
+    marginTop: 12,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
   },
-  footer: {
+  votingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    marginBottom: 12,
   },
-  status: {
-    textTransform: 'capitalize',
+  votingTitle: {
     fontWeight: 'bold',
+    fontSize: 15,
+    color: '#333',
+  },
+  statsButton: {
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  statsIcon: {
+    fontSize: 16,
   },
   votesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    justifyContent: 'center',
+    gap: 16,
   },
   voteButton: {
-    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 24,
+    borderWidth: 2,
+    backgroundColor: 'white',
+    minWidth: 80,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  votes: {
-    fontSize: 14,
+  voteEmoji: {
+    fontSize: 20,
+    marginRight: 6,
+  },
+  voteCount: {
+    fontSize: 16,
     fontWeight: 'bold',
   },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   createButton: {
     backgroundColor: Colors.light.tint,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   createButtonText: {
     color: '#fff',
@@ -352,103 +400,38 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     alignItems: 'center',
-    marginTop: 50,
-    gap: 20,
+    marginTop: 60,
+    gap: 24,
   },
   emptyText: {
     textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
   },
   adminActions: {
-    marginTop: 10,
+    marginTop: 16,
     flexDirection: 'row',
-    gap: 10,
-  },
-  actionButton: {
-    backgroundColor: Colors.light.tint,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  actionButtonText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  historyButton: {
-    padding: 8,
-  },
-  voteItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  voteUserInfo: {
-    flex: 1,
-  },
-  voteUserName: {
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  voteDate: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
-  },
-  voteInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  voteEmoji: {
-    fontSize: 20,
-  },
-  voteComment: {
-    fontSize: 12,
-    color: '#666',
-    fontStyle: 'italic',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-    alignItems: 'center',
+    gap: 12,
+    flexWrap: 'wrap',
   },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: '90%',
-    maxHeight: '80%',
+  adminButton: {
+    backgroundColor: Colors.light.tint,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  closeButton: {
-    fontSize: 24,
+  adminButtonText: {
+    color: 'white',
+    fontSize: 13,
     fontWeight: 'bold',
-    color: '#666',
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: Colors.light.tint,
-  },
-  votesList: {
-    flex: 1,
-  },
-  emptyVotesText: {
-    textAlign: 'center',
-    marginTop: 20,
-    color: '#666',
-  },
-  statsButton: {
-    padding: 8,
   },
 }); 

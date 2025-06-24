@@ -94,29 +94,41 @@ export default function VoteStatsScreen() {
 
   const renderStatsCard = () => (
     <View style={styles.statsCard}>
-      <ThemedText type="title" style={styles.statsTitle}>Estadísticas de Votación</ThemedText>
+      <ThemedText type="title" style={styles.statsTitle}>📊 Estadísticas de Votación</ThemedText>
       
       <View style={styles.statsGrid}>
         <View style={styles.statItem}>
+          <View style={[styles.statIcon, { backgroundColor: '#E3F2FD' }]}>
+            <Text style={styles.statIconText}>📋</Text>
+          </View>
           <ThemedText style={styles.statNumber}>{stats.totalVotes}</ThemedText>
           <ThemedText style={styles.statLabel}>Total Votos</ThemedText>
         </View>
         
         <View style={styles.statItem}>
-          <ThemedText style={[styles.statNumber, { color: 'green' }]}>
+          <View style={[styles.statIcon, { backgroundColor: '#E8F5E8' }]}>
+            <Text style={styles.statIconText}>✅</Text>
+          </View>
+          <ThemedText style={[styles.statNumber, { color: '#4CAF50' }]}>
             {stats.approveVotes}
           </ThemedText>
           <ThemedText style={styles.statLabel}>Aprobados</ThemedText>
         </View>
         
         <View style={styles.statItem}>
-          <ThemedText style={[styles.statNumber, { color: 'red' }]}>
+          <View style={[styles.statIcon, { backgroundColor: '#FFEBEE' }]}>
+            <Text style={styles.statIconText}>❌</Text>
+          </View>
+          <ThemedText style={[styles.statNumber, { color: '#F44336' }]}>
             {stats.rejectVotes}
           </ThemedText>
           <ThemedText style={styles.statLabel}>Rechazados</ThemedText>
         </View>
         
         <View style={styles.statItem}>
+          <View style={[styles.statIcon, { backgroundColor: '#FFF3E0' }]}>
+            <Text style={styles.statIconText}>👥</Text>
+          </View>
           <ThemedText style={styles.statNumber}>
             {stats.participationRate.toFixed(1)}%
           </ThemedText>
@@ -124,30 +136,39 @@ export default function VoteStatsScreen() {
         </View>
       </View>
       
-      <View style={styles.progressBar}>
-        <View 
-          style={[
-            styles.progressFill, 
-            { 
-              width: `${stats.totalVotes > 0 ? (stats.approveVotes / stats.totalVotes) * 100 : 0}%`,
-              backgroundColor: 'green'
-            }
-          ]} 
-        />
-        <View 
-          style={[
-            styles.progressFill, 
-            { 
-              width: `${stats.totalVotes > 0 ? (stats.rejectVotes / stats.totalVotes) * 100 : 0}%`,
-              backgroundColor: 'red'
-            }
-          ]} 
-        />
-      </View>
-      
-      <View style={styles.progressLabels}>
-        <ThemedText style={styles.progressLabel}>Aprobados</ThemedText>
-        <ThemedText style={styles.progressLabel}>Rechazados</ThemedText>
+      <View style={styles.progressSection}>
+        <ThemedText style={styles.progressTitle}>Distribución de Votos</ThemedText>
+        <View style={styles.progressBar}>
+          <View 
+            style={[
+              styles.progressFill, 
+              { 
+                width: `${stats.totalVotes > 0 ? (stats.approveVotes / stats.totalVotes) * 100 : 0}%`,
+                backgroundColor: '#4CAF50'
+              }
+            ]} 
+          />
+          <View 
+            style={[
+              styles.progressFill, 
+              { 
+                width: `${stats.totalVotes > 0 ? (stats.rejectVotes / stats.totalVotes) * 100 : 0}%`,
+                backgroundColor: '#F44336'
+              }
+            ]} 
+          />
+        </View>
+        
+        <View style={styles.progressLabels}>
+          <View style={styles.progressLabelItem}>
+            <View style={[styles.progressDot, { backgroundColor: '#4CAF50' }]} />
+            <ThemedText style={styles.progressLabel}>Aprobados</ThemedText>
+          </View>
+          <View style={styles.progressLabelItem}>
+            <View style={[styles.progressDot, { backgroundColor: '#F44336' }]} />
+            <ThemedText style={styles.progressLabel}>Rechazados</ThemedText>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -208,124 +229,193 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: '#f8f9fa',
   },
   budgetTitle: {
-    marginBottom: 20,
+    marginBottom: 24,
     textAlign: 'center',
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
   },
   statsCard: {
-    backgroundColor: '#f8f9fa',
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+    backgroundColor: 'white',
+    padding: 24,
+    borderRadius: 20,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
   },
   statsTitle: {
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: 24,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
   },
   statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: 28,
+    flexWrap: 'wrap',
+    gap: 20,
   },
   statItem: {
     alignItems: 'center',
+    minWidth: 80,
+  },
+  statIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statIconText: {
+    fontSize: 20,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 6,
+    color: '#333',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#666',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  progressSection: {
+    marginTop: 16,
+  },
+  progressTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#333',
     textAlign: 'center',
   },
   progressBar: {
-    height: 8,
+    height: 16,
     backgroundColor: '#e9ecef',
-    borderRadius: 4,
+    borderRadius: 8,
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: 16,
+    overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 8,
   },
   progressLabels: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
+  },
+  progressLabelItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  progressDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginRight: 8,
   },
   progressLabel: {
-    fontSize: 12,
+    fontSize: 15,
     color: '#666',
+    fontWeight: '500',
   },
   sectionTitle: {
-    marginBottom: 15,
+    marginBottom: 20,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
   },
   list: {
     flex: 1,
   },
   voteItem: {
     backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
   },
   voteUserInfo: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   voteUserName: {
     fontWeight: 'bold',
     fontSize: 16,
+    color: '#333',
   },
   voteDate: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#666',
-    marginTop: 2,
+    marginTop: 4,
   },
   voteInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
   voteEmoji: {
-    fontSize: 20,
+    fontSize: 24,
   },
   voteType: {
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 15,
+    color: '#333',
   },
   commentContainer: {
-    marginTop: 10,
-    paddingTop: 10,
+    marginTop: 16,
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
+    borderTopColor: '#f0f0f0',
   },
   commentLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#666',
-    marginBottom: 4,
+    marginBottom: 8,
+    fontWeight: '500',
   },
   commentText: {
-    fontSize: 14,
+    fontSize: 15,
     fontStyle: 'italic',
     color: '#333',
+    lineHeight: 22,
   },
   emptyContainer: {
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: 60,
+    padding: 20,
   },
   emptyText: {
     textAlign: 'center',
     color: '#666',
+    fontSize: 18,
+    lineHeight: 26,
   },
   errorText: {
-    color: 'red',
+    color: '#F44336',
     textAlign: 'center',
+    fontSize: 16,
+    marginTop: 20,
   },
 }); 

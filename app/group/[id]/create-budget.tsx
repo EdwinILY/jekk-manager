@@ -5,7 +5,7 @@ import { Colors } from '@/constants/Colors';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Button, Image, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function CreateBudgetScreen() {
   const { id: groupId } = useLocalSearchParams<{ id: string }>();
@@ -68,33 +68,93 @@ export default function CreateBudgetScreen() {
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: 'Crear Presupuesto' }} />
-      <ScrollView>
-        <ThemedText type="title">Nueva Propuesta</ThemedText>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.header}>
+          <ThemedText type="title" style={styles.title}>📝 Nueva Propuesta</ThemedText>
+          <ThemedText style={styles.subtitle}>Crea una nueva propuesta de presupuesto para tu grupo</ThemedText>
+        </View>
         
-        <ThemedText style={styles.label}>Título</ThemedText>
-        <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Ej: Compra de insumos para evento" />
+        <View style={styles.formSection}>
+          <ThemedText style={styles.label}>📋 Título *</ThemedText>
+          <TextInput 
+            style={styles.input} 
+            value={title} 
+            onChangeText={setTitle} 
+            placeholder="Ej: Compra de insumos para evento" 
+            placeholderTextColor="#999"
+          />
 
-        <ThemedText style={styles.label}>Objetivo del Gasto</ThemedText>
-        <TextInput style={styles.input} value={objective} onChangeText={setObjective} placeholder="Ej: Reponer el stock de materiales" />
+          <ThemedText style={styles.label}>🎯 Objetivo del Gasto *</ThemedText>
+          <TextInput 
+            style={styles.input} 
+            value={objective} 
+            onChangeText={setObjective} 
+            placeholder="Ej: Reponer el stock de materiales" 
+            placeholderTextColor="#999"
+          />
 
-        <ThemedText style={styles.label}>Monto Total (USD)</ThemedText>
-        <TextInput style={styles.input} value={amount} onChangeText={setAmount} placeholder="150.00" keyboardType="numeric" />
+          <ThemedText style={styles.label}>💰 Monto Total (USD) *</ThemedText>
+          <TextInput 
+            style={styles.input} 
+            value={amount} 
+            onChangeText={setAmount} 
+            placeholder="150.00" 
+            keyboardType="numeric" 
+            placeholderTextColor="#999"
+          />
 
-        <ThemedText style={styles.label}>Descripción (Opcional)</ThemedText>
-        <TextInput style={styles.input} value={description} onChangeText={setDescription} multiline numberOfLines={4} placeholder="Detalles adicionales, cotizaciones, etc." />
+          <ThemedText style={styles.label}>📝 Descripción (Opcional)</ThemedText>
+          <TextInput 
+            style={[styles.input, styles.textArea]} 
+            value={description} 
+            onChangeText={setDescription} 
+            multiline 
+            numberOfLines={4} 
+            placeholder="Detalles adicionales, cotizaciones, etc." 
+            placeholderTextColor="#999"
+          />
+        </View>
 
-        <ThemedText style={styles.label}>Adjuntos</ThemedText>
-        <Pressable style={styles.imagePicker} onPress={pickImage}>
-            <Text style={styles.imagePickerText}>Seleccionar Imágenes</Text>
+        <View style={styles.attachmentsSection}>
+          <ThemedText style={styles.label}>📎 Adjuntos</ThemedText>
+          <Pressable style={styles.imagePicker} onPress={pickImage}>
+            <Text style={styles.imagePickerText}>📷 Seleccionar Imágenes</Text>
+          </Pressable>
+
+          {images.length > 0 && (
+            <View style={styles.imagePreviewContainer}>
+              <ThemedText style={styles.previewTitle}>Vista previa ({images.length} imagen{images.length > 1 ? 'es' : ''})</ThemedText>
+              <ScrollView horizontal style={styles.imageScroll} showsHorizontalScrollIndicator={false}>
+                {images.map((uri, index) => (
+                  <View key={index} style={styles.imageWrapper}>
+                    <Image source={{ uri }} style={styles.previewImage} />
+                    <Pressable 
+                      style={styles.removeImageButton}
+                      onPress={() => setImages(images.filter((_, i) => i !== index))}
+                    >
+                      <Text style={styles.removeImageText}>✕</Text>
+                    </Pressable>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+
+        <Pressable 
+          style={[styles.submitButton, loading && styles.submitButtonDisabled]} 
+          onPress={handleCreateBudget} 
+          disabled={loading}
+        >
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color="white" size="small" />
+              <ThemedText style={styles.submitButtonText}>Creando...</ThemedText>
+            </View>
+          ) : (
+            <ThemedText style={styles.submitButtonText}>🚀 Crear Propuesta</ThemedText>
+          )}
         </Pressable>
-
-        <ScrollView horizontal style={styles.imagePreviewContainer}>
-            {images.map((uri, index) => (
-                <Image key={index} source={{ uri }} style={styles.previewImage} />
-            ))}
-        </ScrollView>
-
-        <Button title={loading ? 'Creando...' : 'Crear Propuesta'} onPress={handleCreateBudget} disabled={loading} color={Colors.light.tint} />
       </ScrollView>
     </ThemedView>
   );
@@ -104,6 +164,24 @@ const styles = StyleSheet.create({
     container: { 
       flex: 1, 
       padding: 20, 
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      marginBottom: 20,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 10,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: '#666',
+    },
+    formSection: {
+      marginBottom: 20,
     },
     label: { 
       marginTop: 15, 
@@ -120,6 +198,12 @@ const styles = StyleSheet.create({
       fontSize: 16,
       marginBottom: 10,
     },
+    textArea: {
+      height: 100,
+    },
+    attachmentsSection: {
+      marginBottom: 20,
+    },
     imagePicker: {
         backgroundColor: '#f0f0f0',
         padding: 15,
@@ -131,13 +215,55 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     imagePreviewContainer: {
-        flexDirection: 'row',
         marginBottom: 20,
+    },
+    previewTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    imageScroll: {
+        flexDirection: 'row',
+    },
+    imageWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 10,
     },
     previewImage: {
         width: 100,
         height: 100,
         borderRadius: 8,
-        marginRight: 10,
-    }
+    },
+    removeImageButton: {
+        padding: 5,
+        borderRadius: 15,
+        backgroundColor: '#ff3b30',
+        marginLeft: 5,
+    },
+    removeImageText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: 'white',
+    },
+    submitButton: {
+        backgroundColor: Colors.light.tint,
+        padding: 15,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    submitButtonDisabled: {
+        backgroundColor: '#ccc',
+    },
+    loadingContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    submitButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: 'white',
+        marginLeft: 10,
+    },
 }); 
