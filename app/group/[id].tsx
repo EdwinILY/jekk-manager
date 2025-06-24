@@ -1,5 +1,5 @@
 import { Budget } from '@/app/models/budget.interface';
-import { getBudgetsForGroup, getUserVote, isUserAdmin, updateBudgetStatus, voteOnBudget, voteOnBudgetWithComment } from '@/app/services/groups.service';
+import { getBudgetAttachments, getBudgetsForGroup, getUserVote, isUserAdmin, updateBudgetStatus, voteOnBudget, voteOnBudgetWithComment } from '@/app/services/groups.service';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -8,10 +8,13 @@ import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { IconSymbol } from '../../components/ui/IconSymbol';
+import { supabase } from '../../supabase';
 
 interface BudgetWithUserVote extends Budget {
   userVote?: 'approve' | 'reject' | null;
   isAdmin?: boolean;
+  hasImage?: boolean;
+  imageUrl?: string | null;
 }
 
 export default function GroupDetailScreen() {
@@ -52,18 +55,21 @@ export default function GroupDetailScreen() {
       const groupId = parseInt(id, 10);
       const data = await getBudgetsForGroup(groupId);
       
-      // Enriquecer los datos con el voto del usuario y rol de admin
+      // Enriquecer los datos con el voto del usuario, rol de admin y adjuntos
       const enrichedData = await Promise.all(
         data.map(async (budget) => {
-          const [userVote, isAdmin] = await Promise.all([
+          const [userVote, isAdmin, attachments] = await Promise.all([
             getUserVote(budget.id, currentUserId),
-            isUserAdmin(groupId, currentUserId)
+            isUserAdmin(groupId, currentUserId),
+            getBudgetAttachments(budget.id)
           ]);
           
           return {
             ...budget,
             userVote,
-            isAdmin
+            isAdmin,
+            hasImage: attachments.length > 0,
+            imageUrl: attachments[0]?.url || null
           };
         })
       );
@@ -122,6 +128,27 @@ export default function GroupDetailScreen() {
     }
   };
 
+  const handleDeleteBudget = async (budgetId: number) => {
+    Alert.alert(
+      'Eliminar presupuesto',
+      '¿Estás seguro de que deseas eliminar este presupuesto? Esta acción no se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: async () => {
+            try {
+              // Eliminar presupuesto (puedes crear un servicio aparte si no existe)
+              await supabase.from('budgets').delete().eq('id', budgetId);
+              fetchBudgets();
+              Alert.alert('Presupuesto eliminado');
+            } catch (error: any) {
+              Alert.alert('Error', 'No se pudo eliminar el presupuesto: ' + error.message);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case 'draft':
@@ -174,23 +201,26 @@ export default function GroupDetailScreen() {
     }
   };
 
-  const renderBudgetItem = ({ item }: { item: BudgetWithUserVote }) => (
-    <ThemedView style={[styles.budgetItem, { backgroundColor: cardBackground, borderColor }]}>
+  const renderBudgetItem = ({ item }: { item: BudgetWithUserVote & { hasImage?: boolean } }) => (
+    <Pressable onPress={() => router.push(`/group/${id}/budget/${item.id}`)} style={{ width: '100%' }}>
+      <ThemedView style={[styles.budgetItem, { backgroundColor: cardBackground, borderColor }]}> 
         <View style={styles.budgetHeader}>
-            <View style={styles.titleContainer}>
-                <ThemedText type="title" style={[styles.budgetTitle, { color: textColor }]}>
-                    {item.title}
-                </ThemedText>
-            </View>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusDisplay(item.status).color + '20' }]}>
-                <ThemedText style={[styles.statusText, { color: getStatusDisplay(item.status).color }]}>
-                    {getStatusDisplay(item.status).text}
-                </ThemedText>
-            </View>
+          <View style={styles.titleContainer}>
+            {item.hasImage && (
+              <IconSymbol name="image" size={18} color={Colors.light.tint} style={{ marginRight: 6 }} />
+            )}
+            <ThemedText type="title" style={[styles.budgetTitle, { color: textColor }]}> {item.title} </ThemedText>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusDisplay(item.status).color + '20' }]}> 
+            <ThemedText style={[styles.statusText, { color: getStatusDisplay(item.status).color }]}> {getStatusDisplay(item.status).text} </ThemedText>
+          </View>
+          {item.status === 'draft' && item.isAdmin && (
+            <Pressable onPress={() => handleDeleteBudget(item.id)} style={{ marginLeft: 8 }}>
+              <IconSymbol name="delete" size={20} color="#e74c3c" />
+            </Pressable>
+          )}
         </View>
-        
         <ThemedText style={[styles.amount, { color: Colors.light.tint }]}>${item.amount.toFixed(2)}</ThemedText>
-        
         <ThemedText style={[styles.objective, { color: secondaryTextColor }]}>{item.objective}</ThemedText>
         
         <View style={styles.votingSection}>
@@ -276,7 +306,8 @@ export default function GroupDetailScreen() {
             )}
           </View>
         )}
-    </ThemedView>
+      </ThemedView>
+    </Pressable>
   );
 
   return (

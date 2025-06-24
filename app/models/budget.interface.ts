@@ -9,6 +9,7 @@ export interface Budget {
     approve_votes: number;
     reject_votes: number;
     status: 'draft' | 'pending' | 'approved' | 'rejected' | 'executing' | 'completed';
+    description?: string;
 }
 
 export interface NewBudget {
