@@ -244,4 +244,18 @@ export const updateUserGroupStatus = async (groupId: number, userId: number, new
       console.error('Error updating user group status:', error);
       throw new Error('No se pudo actualizar el estado del grupo: ' + error.message);
   }
+};
+
+export const getBudgetAttachments = async (budgetId: number): Promise<{ url: string }[]> => {
+  const { data, error } = await supabase
+    .from('budget_attachments')
+    .select('url')
+    .eq('budget_id', budgetId)
+    .eq('type', 'image');
+
+  if (error) {
+    console.error('Error obteniendo adjuntos:', error);
+    return [];
+  }
+  return data || [];
 }; 

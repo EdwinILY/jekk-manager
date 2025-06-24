@@ -231,10 +231,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Obtener presupuestos de un grupo
+DROP FUNCTION IF EXISTS get_budgets_for_group(INTEGER);
 CREATE OR REPLACE FUNCTION get_budgets_for_group(p_group_id INTEGER)
 RETURNS TABLE (
   id INTEGER,
   title VARCHAR,
+  description TEXT,
   objective VARCHAR,
   amount DECIMAL,
   group_id INTEGER,
@@ -249,6 +251,7 @@ BEGIN
   SELECT 
     b.id,
     b.title,
+    b.description,
     b.objective,
     b.amount,
     b.group_id,
