@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '../../components/ThemedText';
@@ -122,17 +122,13 @@ export default function RegisterScreen() {
                         <ThemedText style={styles.buttonText}>Registrarse →</ThemedText>
                     )}
                 </TouchableOpacity>
-        <TouchableOpacity>
-          <ThemedText style={styles.link}>
-            ¿Ya tienes una cuenta? <ThemedText type="link" onPress={() => {
-              // Note: Navigation between auth screens needs to be fixed in a future update
-              // The current expo-router typing is preventing proper navigation
-              console.log("Navigate to login screen");
-            }}>Iniciar sesión</ThemedText>
-          </ThemedText>
-        </TouchableOpacity>
+                <Link href="/login" asChild>
+                    <TouchableOpacity>
+                        <ThemedText style={[styles.link, { color: tintColor }]}>¿Ya tienes una cuenta? Iniciar sesión</ThemedText>
+                    </TouchableOpacity>
+                </Link>
             </View>
-        </ThemedView>
+        </ThemedView >
     );
 }
 
