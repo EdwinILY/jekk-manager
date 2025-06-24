@@ -38,7 +38,9 @@ export default function LoginScreen() {
       return;
     }
     setLoading(true);
-    const redirectUrl = Linking.createURL('/auth/reset-password');
+    // Generate deep link to the reset-password route (group folders are omitted)
+    // Use non-leading slash for correct deep link without hash
+    const redirectUrl = Linking.createURL('reset-password');
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
     if (resetError) {
       setError(resetError.message);

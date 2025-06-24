@@ -15,7 +15,6 @@ export default function ResetPasswordScreen() {
     const router = useRouter();
 
     useEffect(() => {
-        // Exchange the deep link URL for a session
         (async () => {
             const url = await Linking.getInitialURL();
             if (!url) {
@@ -23,7 +22,26 @@ export default function ResetPasswordScreen() {
                 setLoading(false);
                 return;
             }
-            const { error: sessionError } = await supabase.auth.exchangeCodeForSession(url);
+            // Parse fragment for tokens
+            const [, fragment] = url.split('#');
+            if (!fragment) {
+                setError('Token no encontrado en la URL');
+                setLoading(false);
+                return;
+            }
+            const params: Record<string,string> = {};
+            fragment.split('&').forEach(pair => {
+                const [key, value] = pair.split('=');
+                if (key && value) params[key] = decodeURIComponent(value);
+            });
+            const access_token = params['access_token'];
+            const refresh_token = params['refresh_token'];
+            if (!access_token || !refresh_token) {
+                setError('Tokens inválidos');
+                setLoading(false);
+                return;
+            }
+            const { error: sessionError } = await supabase.auth.setSession({ access_token, refresh_token });
             if (sessionError) {
                 setError(sessionError.message);
             }
