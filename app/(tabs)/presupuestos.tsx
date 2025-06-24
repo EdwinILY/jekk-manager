@@ -8,6 +8,7 @@ import { getGroupsByStatus, updateUserGroupStatus } from '@/app/services/groups.
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { IconSymbol } from '../../components/ui/IconSymbol';
 
 export default function PresupuestosScreen() {
   const [activeGroups, setActiveGroups] = useState<GroupSummary[]>([]);
@@ -71,18 +72,18 @@ export default function PresupuestosScreen() {
         <View style={styles.swipeActions}>
           {activeSection === 'active' ? (
             <Pressable 
-              style={[styles.swipeButton, styles.archiveSwipeButton]}
+              style={[styles.swipeButton]}
               onPress={() => handleArchiveGroup(item.id)}
             >
-              <ThemedText style={styles.swipeButtonText}>📁</ThemedText>
+              <IconSymbol name="folder.fill" size={20} color="white" style={styles.swipeButtonText} />
               <ThemedText style={styles.swipeButtonLabel}>Archivar</ThemedText>
             </Pressable>
           ) : (
             <Pressable 
-              style={[styles.swipeButton, styles.restoreSwipeButton]}
+              style={[styles.swipeButton]}
               onPress={() => handleRestoreGroup(item.id)}
             >
-              <ThemedText style={styles.swipeButtonText}>🔄</ThemedText>
+              <IconSymbol name="arrow.clockwise" size={20} color="white" style={styles.swipeButtonText} />
               <ThemedText style={styles.swipeButtonLabel}>Restaurar</ThemedText>
             </Pressable>
           )}
@@ -100,15 +101,15 @@ export default function PresupuestosScreen() {
             <View style={styles.cardContent}>
               <View style={styles.groupInfo}>
                 <View style={styles.groupHeader}>
-                  <ThemedText style={styles.groupName}>🏠 {item.name}</ThemedText>
-                  <ThemedText style={styles.groupStat}>👥 {item.member_count}</ThemedText>
+                  <ThemedText style={styles.groupStat}><IconSymbol name="person.2.fill" size={13} color={Colors.light.tint} /> {item.member_count} </ThemedText>
+                  <ThemedText style={styles.groupName}> {item.name}</ThemedText>
                 </View>
-                <ThemedText style={styles.groupCreator}>👤 Creado por: {item.created_by_name}</ThemedText>
+                <ThemedText style={styles.groupCreator}>Creado por: {item.created_by_name}</ThemedText>
               </View>
               <View style={styles.cardActions}>
                 <Link href={`/group/${item.id}/invite`} asChild>
                   <Pressable style={styles.actionButton}>
-                    <ThemedText style={styles.actionButtonText}>📨</ThemedText>
+                    <IconSymbol name="envelope.fill" size={16} color="white" style={styles.actionButtonText} />
                   </Pressable>
                 </Link>
               </View>
@@ -145,12 +146,12 @@ export default function PresupuestosScreen() {
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <Link href="/create-group" asChild>
                 <Pressable style={styles.headerButton}>
-                  <ThemedText style={styles.headerButtonText}>➕ Crear</ThemedText>
+                  <ThemedText style={styles.headerButtonText}>Crear</ThemedText>
                 </Pressable>
               </Link>
               <Link href="/join-group" asChild>
                 <Pressable style={styles.headerButton}>
-                  <ThemedText style={styles.headerButtonText}>🔗 Unirse</ThemedText>
+                  <ThemedText style={styles.headerButtonText}>Unirse</ThemedText>
                 </Pressable>
               </Link>
             </View>
@@ -172,7 +173,7 @@ export default function PresupuestosScreen() {
             styles.tabText, 
             activeSection === 'active' && styles.activeTabText
           ]}>
-            🏠 Activos ({activeGroups.length})
+            Activos ({activeGroups.length})
           </ThemedText>
         </Pressable>
         
@@ -187,7 +188,7 @@ export default function PresupuestosScreen() {
             styles.tabText, 
             activeSection === 'archived' && styles.activeTabText
           ]}>
-            📁 Archivados ({archivedGroups.length})
+            Archivados ({archivedGroups.length})
           </ThemedText>
         </Pressable>
       </View>
@@ -351,12 +352,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 8,
-  },
-  archiveSwipeButton: {
-    backgroundColor: '#95a5a6',
-  },
-  restoreSwipeButton: {
-    backgroundColor: '#27ae60',
   },
   swipeButtonText: {
     fontSize: 20,

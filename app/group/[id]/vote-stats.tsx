@@ -3,7 +3,8 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { IconSymbol } from '../../../components/ui/IconSymbol';
 
 interface VoteData {
   vote: 'approve' | 'reject';
@@ -75,9 +76,7 @@ export default function VoteStatsScreen() {
       </View>
       
       <View style={styles.voteInfo}>
-        <Text style={styles.voteEmoji}>
-          {item.vote === 'approve' ? '👍' : '👎'}
-        </Text>
+        <IconSymbol name={item.vote === 'approve' ? 'hand.thumbsup.fill' : 'hand.thumbsdown.fill'} size={24} color={item.vote === 'approve' ? '#4CAF50' : '#F44336'} style={styles.voteEmoji} />
         <ThemedText style={styles.voteType}>
           {item.vote === 'approve' ? 'Aprobado' : 'Rechazado'}
         </ThemedText>
@@ -94,12 +93,12 @@ export default function VoteStatsScreen() {
 
   const renderStatsCard = () => (
     <View style={styles.statsCard}>
-      <ThemedText type="title" style={styles.statsTitle}>📊 Estadísticas de Votación</ThemedText>
+      <ThemedText type="title" style={styles.statsTitle}>Estadísticas de Votación</ThemedText>
       
       <View style={styles.statsGrid}>
         <View style={styles.statItem}>
           <View style={[styles.statIcon, { backgroundColor: '#E3F2FD' }]}>
-            <Text style={styles.statIconText}>📋</Text>
+            <IconSymbol name="clipboard.fill" size={18} color="#333" style={styles.statIconText} />
           </View>
           <ThemedText style={styles.statNumber}>{stats.totalVotes}</ThemedText>
           <ThemedText style={styles.statLabel}>Total Votos</ThemedText>
@@ -107,7 +106,7 @@ export default function VoteStatsScreen() {
         
         <View style={styles.statItem}>
           <View style={[styles.statIcon, { backgroundColor: '#E8F5E8' }]}>
-            <Text style={styles.statIconText}>✅</Text>
+            <IconSymbol name="checkmark" size={18} color="#4CAF50" style={styles.statIconText} />
           </View>
           <ThemedText style={[styles.statNumber, { color: '#4CAF50' }]}>
             {stats.approveVotes}
@@ -117,22 +116,12 @@ export default function VoteStatsScreen() {
         
         <View style={styles.statItem}>
           <View style={[styles.statIcon, { backgroundColor: '#FFEBEE' }]}>
-            <Text style={styles.statIconText}>❌</Text>
+            <IconSymbol name="xmark.circle.fill" size={18} color="#F44336" style={styles.statIconText} />
           </View>
           <ThemedText style={[styles.statNumber, { color: '#F44336' }]}>
             {stats.rejectVotes}
           </ThemedText>
           <ThemedText style={styles.statLabel}>Rechazados</ThemedText>
-        </View>
-        
-        <View style={styles.statItem}>
-          <View style={[styles.statIcon, { backgroundColor: '#FFF3E0' }]}>
-            <Text style={styles.statIconText}>👥</Text>
-          </View>
-          <ThemedText style={styles.statNumber}>
-            {stats.participationRate.toFixed(1)}%
-          </ThemedText>
-          <ThemedText style={styles.statLabel}>Participación</ThemedText>
         </View>
       </View>
       

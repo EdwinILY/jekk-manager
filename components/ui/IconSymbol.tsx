@@ -1,24 +1,37 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
-import { ComponentProps } from 'react';
+import { SymbolWeight } from 'expo-symbols';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
-type IconSymbolName = keyof typeof MAPPING;
+type IconSymbolName = string;
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
  * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
-const MAPPING = {
+const MAPPING: Record<string, string> = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
-} as IconMapping;
+  'hand.thumbsup.fill': 'thumb-up',
+  'hand.thumbsdown.fill': 'thumb-down',
+  'chart.bar.fill': 'bar-chart',
+  'xmark': 'close',
+  'checkmark': 'check',
+  'plus': 'add',
+  'envelope.fill': 'mail',
+  'rocket.fill': 'rocket',
+  'party.popper.fill': 'celebration',
+  'clipboard.fill': 'assignment',
+  'person.2.fill': 'group',
+  'xmark.circle.fill': 'cancel',
+  'hand.wave.fill': 'waving-hand',
+  'folder.fill': 'folder',
+  'arrow.clockwise': 'restore',
+};
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
@@ -37,5 +50,6 @@ export function IconSymbol({
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  const iconName = MAPPING[name] || 'help-outline';
+  return <MaterialIcons color={color} size={size} name={iconName as any} style={style} />;
 }

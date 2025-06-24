@@ -44,35 +44,35 @@ export default function InviteScreen() {
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" />
-          <ThemedText style={styles.loadingText}>🎯 Generando código...</ThemedText>
+          <ThemedText style={styles.loadingText}>Generando código...</ThemedText>
         </View>
       ) : inviteCode ? (
         <>
           <View style={styles.header}>
-            <ThemedText type="title" style={styles.title}>📨 Invitar Miembros</ThemedText>
+            <ThemedText type="title" style={styles.title}>Invitar Miembros</ThemedText>
             <ThemedText style={styles.subtitle}>Comparte este código para invitar a nuevos miembros a tu grupo</ThemedText>
           </View>
           
           <View style={styles.qrSection}>
-            <ThemedText style={styles.sectionTitle}>📱 Código QR</ThemedText>
+            <ThemedText style={styles.sectionTitle}>Código QR</ThemedText>
             <View style={styles.qrContainer}>
               <QRCode value={inviteCode} size={250} />
             </View>
           </View>
           
           <View style={styles.codeSection}>
-            <ThemedText style={styles.sectionTitle}>🎫 Código de Texto</ThemedText>
+            <ThemedText style={styles.sectionTitle}>Código de Texto</ThemedText>
             <View style={styles.codeContainer}>
               <ThemedText style={styles.inviteCode}>{inviteCode}</ThemedText>
             </View>
           </View>
           
           <Pressable style={styles.shareButton} onPress={onShare}>
-            <ThemedText style={styles.shareButtonText}>📤 Compartir Código</ThemedText>
+            <ThemedText style={styles.shareButtonText}>Compartir Código</ThemedText>
           </Pressable>
           
           <View style={styles.infoSection}>
-            <ThemedText style={styles.infoText}>💡 Cómo usar:</ThemedText>
+            <ThemedText style={styles.infoText}>Cómo usar:</ThemedText>
             <ThemedText style={styles.infoItem}>• Muestra el QR para que lo escaneen</ThemedText>
             <ThemedText style={styles.infoItem}>• O comparte el código de texto</ThemedText>
             <ThemedText style={styles.infoItem}>• Los nuevos miembros se unirán automáticamente</ThemedText>
@@ -80,7 +80,7 @@ export default function InviteScreen() {
         </>
       ) : (
         <View style={styles.errorContainer}>
-          <ThemedText style={styles.errorText}>❌ No se pudo generar un código de invitación.</ThemedText>
+          <ThemedText style={styles.errorText}>No se pudo generar un código de invitación.</ThemedText>
         </View>
       )}
     </ThemedView>
@@ -101,6 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   inviteCode: {
+    color: 'black',
     fontSize: 24,
     fontWeight: 'bold',
     letterSpacing: 4,

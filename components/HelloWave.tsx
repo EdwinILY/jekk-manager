@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withSequence,
+    withTiming,
 } from 'react-native-reanimated';
 
-import { ThemedText } from '@/components/ThemedText';
+import { IconSymbol } from './ui/IconSymbol';
 
 export function HelloWave() {
   const rotationAnimation = useSharedValue(0);
@@ -26,7 +26,7 @@ export function HelloWave() {
 
   return (
     <Animated.View style={animatedStyle}>
-      <ThemedText style={styles.text}>👋</ThemedText>
+      <IconSymbol name="hand.wave.fill" size={28} color="#333" style={styles.text} />
     </Animated.View>
   );
 }

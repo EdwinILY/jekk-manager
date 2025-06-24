@@ -42,12 +42,12 @@ export default function CreateGroupScreen() {
       <Stack.Screen options={{ title: 'Crear Grupo' }} />
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
-          <ThemedText type="title" style={styles.title}>👥 Nuevo Grupo</ThemedText>
+          <ThemedText type="title" style={styles.title}>Nuevo Grupo</ThemedText>
           <ThemedText style={styles.subtitle}>Crea un nuevo grupo para gestionar presupuestos colaborativos</ThemedText>
         </View>
         
         <View style={styles.formSection}>
-          <ThemedText style={styles.label}>📝 Nombre del Grupo *</ThemedText>
+          <ThemedText style={styles.label}>Nombre del Grupo *</ThemedText>
           <TextInput 
             style={styles.input} 
             value={name} 
@@ -56,7 +56,7 @@ export default function CreateGroupScreen() {
             placeholderTextColor="#999"
           />
 
-          <ThemedText style={styles.label}>📄 Descripción (Opcional)</ThemedText>
+          <ThemedText style={styles.label}>Descripción (Opcional)</ThemedText>
           <TextInput 
             style={[styles.input, styles.textArea]} 
             value={description} 
@@ -79,7 +79,7 @@ export default function CreateGroupScreen() {
               <ThemedText style={styles.submitButtonText}>Creando...</ThemedText>
             </View>
           ) : (
-            <ThemedText style={styles.submitButtonText}>🚀 Crear Grupo</ThemedText>
+            <ThemedText style={styles.submitButtonText}>Crear Grupo</ThemedText>
           )}
         </Pressable>
       </ScrollView>

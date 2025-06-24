@@ -70,12 +70,11 @@ export default function CreateBudgetScreen() {
       <Stack.Screen options={{ title: 'Crear Presupuesto' }} />
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
-          <ThemedText type="title" style={styles.title}>📝 Nueva Propuesta</ThemedText>
-          <ThemedText style={styles.subtitle}>Crea una nueva propuesta de presupuesto para tu grupo</ThemedText>
+          <ThemedText type="title" style={styles.title}>Nueva Propuesta</ThemedText>
         </View>
         
         <View style={styles.formSection}>
-          <ThemedText style={styles.label}>📋 Título *</ThemedText>
+          <ThemedText style={styles.label}>Título *</ThemedText>
           <TextInput 
             style={styles.input} 
             value={title} 
@@ -84,7 +83,7 @@ export default function CreateBudgetScreen() {
             placeholderTextColor="#999"
           />
 
-          <ThemedText style={styles.label}>🎯 Objetivo del Gasto *</ThemedText>
+          <ThemedText style={styles.label}>Objetivo del Gasto *</ThemedText>
           <TextInput 
             style={styles.input} 
             value={objective} 
@@ -93,7 +92,7 @@ export default function CreateBudgetScreen() {
             placeholderTextColor="#999"
           />
 
-          <ThemedText style={styles.label}>💰 Monto Total (USD) *</ThemedText>
+          <ThemedText style={styles.label}>Monto Total (USD) *</ThemedText>
           <TextInput 
             style={styles.input} 
             value={amount} 
@@ -103,7 +102,7 @@ export default function CreateBudgetScreen() {
             placeholderTextColor="#999"
           />
 
-          <ThemedText style={styles.label}>📝 Descripción (Opcional)</ThemedText>
+          <ThemedText style={styles.label}>Descripción (Opcional)</ThemedText>
           <TextInput 
             style={[styles.input, styles.textArea]} 
             value={description} 
@@ -116,9 +115,9 @@ export default function CreateBudgetScreen() {
         </View>
 
         <View style={styles.attachmentsSection}>
-          <ThemedText style={styles.label}>📎 Adjuntos</ThemedText>
+          <ThemedText style={styles.label}>Adjuntos</ThemedText>
           <Pressable style={styles.imagePicker} onPress={pickImage}>
-            <Text style={styles.imagePickerText}>📷 Seleccionar Imágenes</Text>
+            <Text style={styles.imagePickerText}>Seleccionar Imágenes</Text>
           </Pressable>
 
           {images.length > 0 && (
@@ -152,7 +151,7 @@ export default function CreateBudgetScreen() {
               <ThemedText style={styles.submitButtonText}>Creando...</ThemedText>
             </View>
           ) : (
-            <ThemedText style={styles.submitButtonText}>🚀 Crear Propuesta</ThemedText>
+            <ThemedText style={styles.submitButtonText}>Crear Propuesta</ThemedText>
           )}
         </Pressable>
       </ScrollView>

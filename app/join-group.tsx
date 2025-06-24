@@ -3,8 +3,9 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { Stack, useRouter } from 'expo-router';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { IconSymbol } from '../components/ui/IconSymbol';
 
 export default function JoinGroupScreen() {
   const [inviteCode, setInviteCode] = useState('');
@@ -25,7 +26,7 @@ export default function JoinGroupScreen() {
             { text: 'OK', onPress: () => router.replace(`/group/${groupId}`) }
         ]);
     } catch (error: any) {
-        Alert.alert('❌ Error al unirse', error.message);
+        Alert.alert('Error al unirse', error.message);
     } finally {
         setLoading(false);
     }
@@ -36,12 +37,11 @@ export default function JoinGroupScreen() {
       <Stack.Screen options={{ title: 'Unirse a un Grupo' }} />
       
       <View style={styles.header}>
-        <ThemedText type="title" style={styles.title}>🔗 Unirse a un Grupo</ThemedText>
-        <ThemedText style={styles.subtitle}>Introduce el código de invitación para unirte</ThemedText>
+        <ThemedText type="title" style={styles.title}>Unirse a un Grupo</ThemedText>
       </View>
       
       <View style={styles.formSection}>
-        <ThemedText style={styles.label}>🎫 Código de Invitación</ThemedText>
+        <ThemedText style={styles.label}>Código de Invitación</ThemedText>
         <TextInput 
           style={styles.input} 
           placeholder="Ej: ABC123"
@@ -57,16 +57,9 @@ export default function JoinGroupScreen() {
           disabled={loading}
         >
           <ThemedText style={styles.joinButtonText}>
-            {loading ? '⏳ Uniéndose...' : '🚀 Unirse al Grupo'}
+            {loading ? <><IconSymbol name="hourglass" size={18} color="white" style={{ marginRight: 6 }} />Uniéndose...</> : <>Unirse al Grupo</>}
           </ThemedText>
         </Pressable>
-      </View>
-      
-      <View style={styles.infoSection}>
-        <ThemedText style={styles.infoText}>💡 Consejos:</ThemedText>
-        <ThemedText style={styles.infoItem}>• El código debe tener 6 caracteres</ThemedText>
-        <ThemedText style={styles.infoItem}>• Pídele el código al administrador del grupo</ThemedText>
-        <ThemedText style={styles.infoItem}>• 📱 Escaneo QR próximamente disponible</ThemedText>
       </View>
     </ThemedView>
   );

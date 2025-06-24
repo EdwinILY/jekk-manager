@@ -6,7 +6,8 @@ import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { IconSymbol } from '../../components/ui/IconSymbol';
 
 interface BudgetWithUserVote extends Budget {
   userVote?: 'approve' | 'reject' | null;
@@ -197,7 +198,7 @@ export default function GroupDetailScreen() {
                 <ThemedText style={[styles.votingTitle, { color: textColor }]}>Votación</ThemedText>
                 <Link href={`/group/${id}/vote-stats?budgetId=${item.id}&budgetTitle=${encodeURIComponent(item.title)}`} asChild>
                   <Pressable style={[styles.statsButton, { backgroundColor: cardBackground, borderColor }]}>
-                    <Text style={styles.statsIcon}>📊</Text>
+                    <IconSymbol name="chart.bar.fill" size={16} color={textColor} style={styles.statsIcon} />
                   </Pressable>
                 </Link>
             </View>
@@ -207,7 +208,7 @@ export default function GroupDetailScreen() {
                   onPress={() => openVoteModal(item, 'approve')}
                   disabled={item.status !== 'pending'}
                 >
-                    <Text style={[styles.voteEmoji, { color: item.userVote === 'approve' ? 'white' : '#4CAF50' }]}>👍</Text>
+                    <IconSymbol name="hand.thumbsup.fill" size={20} color={item.userVote === 'approve' ? 'white' : '#4CAF50'} style={styles.voteEmoji} />
                     <ThemedText style={[styles.voteCount, { color: item.userVote === 'approve' ? 'white' : '#4CAF50' }]}>
                       {item.approve_votes}
                     </ThemedText>
@@ -218,7 +219,7 @@ export default function GroupDetailScreen() {
                   onPress={() => openVoteModal(item, 'reject')}
                   disabled={item.status !== 'pending'}
                 >
-                    <Text style={[styles.voteEmoji, { color: item.userVote === 'reject' ? 'white' : '#F44336' }]}>👎</Text>
+                    <IconSymbol name="hand.thumbsdown.fill" size={20} color={item.userVote === 'reject' ? 'white' : '#F44336'} style={styles.voteEmoji} />
                     <ThemedText style={[styles.voteCount, { color: item.userVote === 'reject' ? 'white' : '#F44336' }]}>
                       {item.reject_votes}
                     </ThemedText>
@@ -233,7 +234,7 @@ export default function GroupDetailScreen() {
                 style={styles.adminButton}
                 onPress={() => handleStatusChange(item.id, 'pending')}
               >
-                <ThemedText style={styles.adminButtonText}>📤 Enviar a Votación</ThemedText>
+                <ThemedText style={styles.adminButtonText}>Enviar a Votación</ThemedText>
               </Pressable>
             )}
             {item.status === 'pending' && item.approve_votes > item.reject_votes && (
@@ -241,7 +242,7 @@ export default function GroupDetailScreen() {
                 style={styles.adminButton}
                 onPress={() => handleStatusChange(item.id, 'approved')}
               >
-                <ThemedText style={styles.adminButtonText}>✅ Aprobar</ThemedText>
+                <ThemedText style={styles.adminButtonText}>Aprobar</ThemedText>
               </Pressable>
             )}
             {item.status === 'pending' && (
@@ -249,7 +250,7 @@ export default function GroupDetailScreen() {
                 style={[styles.adminButton, { backgroundColor: '#e74c3c' }]}
                 onPress={() => handleStatusChange(item.id, 'rejected')}
               >
-                <ThemedText style={styles.adminButtonText}>❌ Rechazar</ThemedText>
+                <ThemedText style={styles.adminButtonText}>Rechazar</ThemedText>
               </Pressable>
             )}
           </View>
@@ -262,7 +263,7 @@ export default function GroupDetailScreen() {
                 style={styles.adminButton}
                 onPress={() => handleStatusChange(item.id, 'executing')}
               >
-                <ThemedText style={styles.adminButtonText}>🚀 Ejecutar</ThemedText>
+                <ThemedText style={styles.adminButtonText}><IconSymbol name="rocket.fill" size={14} color="white" style={{ marginRight: 4 }} />Ejecutar</ThemedText>
               </Pressable>
             )}
             {item.status === 'executing' && (
@@ -270,7 +271,7 @@ export default function GroupDetailScreen() {
                 style={styles.adminButton}
                 onPress={() => handleStatusChange(item.id, 'completed')}
               >
-                <ThemedText style={styles.adminButtonText}>🎉 Completar</ThemedText>
+                <ThemedText style={styles.adminButtonText}><IconSymbol name="party.popper.fill" size={14} color="white" style={{ marginRight: 4 }} />Completar</ThemedText>
               </Pressable>
             )}
           </View>
@@ -302,7 +303,7 @@ export default function GroupDetailScreen() {
           style={[styles.createButton, { backgroundColor: Colors.light.tint }]}
           onPress={() => router.push(`/group/${id}/create-budget`)}
         >
-          <ThemedText style={styles.createButtonText}>➕ Crear Presupuesto</ThemedText>
+          <ThemedText style={styles.createButtonText}>Crear Presupuesto</ThemedText>
         </Pressable>
       </View>
       
@@ -321,7 +322,7 @@ export default function GroupDetailScreen() {
             activeSection === 'pending' && styles.activeTabText,
             { color: activeSection === 'pending' ? 'white' : '#555' }
           ]}>
-            📋 En Votación ({pendingBudgets.length})
+            En Votación ({pendingBudgets.length})
           </ThemedText>
         </Pressable>
         
@@ -336,9 +337,9 @@ export default function GroupDetailScreen() {
           <ThemedText style={[
             styles.tabText, 
             activeSection === 'completed' && styles.activeTabText,
-            { color: activeSection === 'completed' ? 'white' : '#555' }
+            { color: activeSection === 'completed' ? 'white' : '#555', flexDirection: 'row', alignItems: 'center' }
           ]}>
-            ✅ Completados ({completedBudgets.length})
+            Completados ({completedBudgets.length})
           </ThemedText>
         </Pressable>
       </View>
@@ -356,8 +357,8 @@ export default function GroupDetailScreen() {
             <View style={styles.emptyContainer}>
               <ThemedText style={[styles.emptyText, { color: secondaryTextColor }]}>
                 {activeSection === 'pending' 
-                  ? '📋 No hay presupuestos en votación' 
-                  : '✅ No hay presupuestos activos'
+                  ? 'No hay presupuestos en votación' 
+                  : 'No hay presupuestos activos'
                 }
               </ThemedText>
               {activeSection === 'pending' && (
@@ -380,11 +381,12 @@ export default function GroupDetailScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: cardBackground }]}>
             <View style={styles.modalHeader}>
-              <ThemedText type="title" style={[styles.modalTitle, { color: textColor }]}>
-                {voteType === 'approve' ? '👍 Aprobar' : '👎 Rechazar'} Presupuesto
+              <ThemedText type="title" style={[styles.modalTitle, { color: textColor, flexDirection: 'row', alignItems: 'center' }]}> 
+                <IconSymbol name={voteType === 'approve' ? 'hand.thumbsup.fill' : 'hand.thumbsdown.fill'} size={22} color={textColor} style={{ marginRight: 6 }} />
+                {voteType === 'approve' ? 'Aprobar' : 'Rechazar'} Presupuesto
               </ThemedText>
               <Pressable onPress={() => setVoteModalVisible(false)}>
-                <Text style={[styles.closeButton, { color: secondaryTextColor }]}>✕</Text>
+                <IconSymbol name="xmark" size={24} color={secondaryTextColor} style={styles.closeButton} />
               </Pressable>
             </View>
             
@@ -426,7 +428,8 @@ export default function GroupDetailScreen() {
                 onPress={submitVoteWithComment}
               >
                 <ThemedText style={styles.submitButtonText}>
-                  {voteType === 'approve' ? '👍 Aprobar' : '👎 Rechazar'}
+                  <IconSymbol name={voteType === 'approve' ? 'hand.thumbsup.fill' : 'hand.thumbsdown.fill'} size={18} color="white" style={{ marginRight: 6 }} />
+                  {voteType === 'approve' ? 'Aprobar' : 'Rechazar'}
                 </ThemedText>
               </Pressable>
             </View>
