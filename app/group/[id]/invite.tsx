@@ -1,14 +1,16 @@
 import { generateInviteCode } from '@/app/services/groups.service';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 export default function InviteScreen() {
   const { id: groupId } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +42,12 @@ export default function InviteScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen options={{ title: 'Invitar a Miembros' }} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, marginTop: 20, alignSelf: 'flex-start' }}>
+        <Pressable onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, paddingHorizontal: 6, paddingVertical: 4 }}>
+          <IconSymbol name="chevron.right" size={28} color={Colors.light.tint} style={{ transform: [{ rotate: '180deg' }] }} />
+          <ThemedText style={{ color: Colors.light.tint, fontSize: 18, marginLeft: 4 }}>Volver</ThemedText>
+        </Pressable>
+      </View>
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" />

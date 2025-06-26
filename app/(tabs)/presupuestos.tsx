@@ -1,6 +1,7 @@
-import { Link, Stack, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Link, useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Platform, Pressable, RefreshControl, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 import { getGroupsByStatus, updateUserGroupStatus } from '@/app/services/groups.service';
@@ -20,6 +21,7 @@ export default function PresupuestosScreen() {
   const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'active' | 'archived'>('active');
   const [userId, setUserId] = useState<number | null>(null);
+  const router = useRouter();
 
   const fetchUserId = async () => {
     const uid = await ObtenerIdAuthSupabase();
@@ -156,27 +158,8 @@ export default function PresupuestosScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          title: 'Mis Grupos',
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <Link href="/create-group" asChild>
-                <Pressable style={styles.headerButton}>
-                  <ThemedText style={styles.headerButtonText}>Crear</ThemedText>
-                </Pressable>
-              </Link>
-              <Link href="/join-group" asChild>
-                <Pressable style={styles.headerButton}>
-                  <ThemedText style={styles.headerButtonText}>Unirse</ThemedText>
-                </Pressable>
-              </Link>
-            </View>
-          ),
-        }} 
-      />
-      <ThemedText type="title">Mis Grupos</ThemedText>
-      
+      {/* Título alineado a la izquierda, sin header ni botones arriba */}
+      <ThemedText type="title" style={styles.titleLeft}>Presupuestos</ThemedText>
       {/* Pestañas de secciones */}
       <View style={styles.tabContainer}>
         <Pressable 
@@ -227,6 +210,21 @@ export default function PresupuestosScreen() {
           </ThemedText>
         )}
       />
+      {/* Botones flotantes en vertical */}
+      <View style={styles.fabContainerVertical}>
+        <Pressable
+          style={[styles.fab, styles.fabMargin]}
+          onPress={() => router.push('/create-group')}
+        >
+          <Ionicons name="add" size={28} color="#fff" />
+        </Pressable>
+        <Pressable
+          style={styles.fab}
+          onPress={() => router.push('/join-group')}
+        >
+          <Ionicons name="person-add" size={24} color="#fff" />
+        </Pressable>
+      </View>
     </ThemedView>
   );
 }
@@ -383,5 +381,91 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     color: 'white',
+  },
+  customHeaderContainer: {
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 24 : 48,
+    backgroundColor: '#fff',
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
+    marginBottom: 8,
+  },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    padding: 8,
+    zIndex: 2,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: Colors.light.tint,
+    textAlign: 'center',
+    flex: 1,
+  },
+  fabContainer: {
+    position: 'absolute',
+    right: 24,
+    bottom: 32,
+    flexDirection: 'row',
+    gap: 16,
+    zIndex: 20,
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.light.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  fabLeft: {
+    marginRight: 12,
+  },
+  fabRight: {
+    // No margin needed, rightmost
+  },
+  screenTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.light.tint,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  fabContainerVertical: {
+    position: 'absolute',
+    right: 24,
+    bottom: 32,
+    flexDirection: 'column',
+    gap: 16,
+    zIndex: 20,
+    alignItems: 'flex-end',
+  },
+  fabMargin: {
+    marginBottom: 12,
+  },
+  titleLeft: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.light.tint,
+    textAlign: 'left',
+    marginTop: 20,
+    marginBottom: 8,
+    marginLeft: 0,
   },
 });

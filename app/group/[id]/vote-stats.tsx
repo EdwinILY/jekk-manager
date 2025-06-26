@@ -1,9 +1,9 @@
 import { getBudgetVotes } from '@/app/services/groups.service';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { IconSymbol } from '../../../components/ui/IconSymbol';
 
 interface VoteData {
@@ -19,6 +19,7 @@ interface VoteData {
 
 export default function VoteStatsScreen() {
   const { budgetId, budgetTitle } = useLocalSearchParams<{ budgetId: string; budgetTitle: string }>();
+  const router = useRouter();
   const [votes, setVotes] = useState<VoteData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -180,11 +181,12 @@ export default function VoteStatsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          title: 'Estadísticas de Votación',
-        }} 
-      />
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, marginTop: 20 }}>
+        <Pressable onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, paddingHorizontal: 6, paddingVertical: 4 }}>
+          <IconSymbol name="chevron.right" size={28} color="#007AFF" style={{ transform: [{ rotate: '180deg' }] }} />
+          <ThemedText style={{ color: '#007AFF', fontSize: 18, marginLeft: 4 }}>Volver</ThemedText>
+        </Pressable>
+      </View>
       
       <FlatList
         data={votes}
@@ -283,7 +285,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   progressSection: {
-    marginTop: 16,
+    marginTop: 20,
   },
   progressTitle: {
     fontSize: 18,
@@ -373,7 +375,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   commentContainer: {
-    marginTop: 16,
+    marginTop: 20,
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',

@@ -3,7 +3,7 @@ import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { IconSymbol } from '../components/ui/IconSymbol';
@@ -41,7 +41,12 @@ export default function JoinGroupScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen options={{ title: 'Unirse a un Grupo' }} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, marginTop: 20 }}>
+        <Pressable onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, paddingHorizontal: 6, paddingVertical: 4 }}>
+          <IconSymbol name="chevron.right" size={28} color={Colors.light.tint} style={{ transform: [{ rotate: '180deg' }] }} />
+          <ThemedText style={{ color: Colors.light.tint, fontSize: 18, marginLeft: 4 }}>Volver</ThemedText>
+        </Pressable>
+      </View>
       
       <View style={styles.header}>
         <ThemedText type="title" style={styles.title}>Unirse a un Grupo</ThemedText>

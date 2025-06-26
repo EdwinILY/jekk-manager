@@ -5,7 +5,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Budget } from '@/models/budget.interface';
-import { Link, Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { Link, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Modal, Pressable, RefreshControl, StyleSheet, TextInput, View } from 'react-native';
 import { IconSymbol } from '../../components/ui/IconSymbol';
@@ -337,18 +337,12 @@ export default function GroupDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          title: loading ? 'Cargando...' : 'Detalles del Grupo',
-          headerRight: () => (
-            <Link href={`/group/${id}/invite`} asChild>
-              <Pressable>
-                <ThemedText style={{ color: Colors.light.tint, fontSize: 16 }}>Invitar</ThemedText>
-              </Pressable>
-            </Link>
-          ),
-        }} 
-      />
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, marginTop: 20 }}>
+        <Pressable onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, paddingHorizontal: 6, paddingVertical: 4 }}>
+          <IconSymbol name="chevron.right" size={28} color={Colors.light.tint} style={{ transform: [{ rotate: '180deg' }] }} />
+          <ThemedText style={{ color: Colors.light.tint, fontSize: 18, marginLeft: 4 }}>Volver</ThemedText>
+        </Pressable>
+      </View>
       <ThemedText type="title" style={[styles.title, { color: textColor }]}>
         Presupuestos del Grupo
       </ThemedText>
@@ -659,7 +653,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   adminActions: {
-    marginTop: 16,
+    marginTop: 20,
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 12,

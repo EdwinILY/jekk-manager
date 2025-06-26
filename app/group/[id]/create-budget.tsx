@@ -2,10 +2,11 @@ import { addBudgetAttachment, createBudget, uploadAttachment } from '@/app/servi
 import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { supabase } from "@/supabase";
 import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -76,7 +77,12 @@ export default function CreateBudgetScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen options={{ title: 'Crear Presupuesto' }} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, marginTop: 20 }}>
+        <Pressable onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, paddingHorizontal: 6, paddingVertical: 4 }}>
+          <IconSymbol name="chevron.right" size={28} color={Colors.light.tint} style={{ transform: [{ rotate: '180deg' }] }} />
+          <ThemedText style={{ color: Colors.light.tint, fontSize: 18, marginLeft: 4 }}>Volver</ThemedText>
+        </Pressable>
+      </View>
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
           <ThemedText type="title" style={styles.title}>Nueva Propuesta</ThemedText>

@@ -175,10 +175,10 @@ export default function BudgetDetailScreen() {
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}> 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <IconSymbol name="chevron.right" size={22} color={Colors.light.tint} style={{ transform: [{ rotate: '180deg' }] }} />
-            <ThemedText style={styles.backText}>Volver</ThemedText>
+        <View style={[styles.headerRow, { marginTop: 20 }]}>
+          <Pressable onPress={() => router.back()} style={[styles.backButton, { paddingHorizontal: 6, paddingVertical: 4 }]}>
+            <IconSymbol name="chevron.right" size={28} color={Colors.light.tint} style={{ transform: [{ rotate: '180deg' }] }} />
+            <ThemedText style={[styles.backText, { fontSize: 18, marginLeft: 4 }]}>Volver</ThemedText>
           </Pressable>
           {isAdminOrCreator && (
             <Pressable onPress={() => setEditModal(true)} style={styles.editButton}>
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   gallerySection: {
-    marginTop: 16,
+    marginTop: 20,
   },
   galleryTitle: {
     fontWeight: 'bold',
