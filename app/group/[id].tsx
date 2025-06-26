@@ -5,9 +5,9 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Budget } from '@/models/budget.interface';
-import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Link, Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Modal, Pressable, RefreshControl, StyleSheet, TextInput, View } from 'react-native';
 import { IconSymbol } from '../../components/ui/IconSymbol';
 import { supabase } from '../../supabase';
 
@@ -30,6 +30,7 @@ export default function GroupDetailScreen() {
   const [activeSection, setActiveSection] = useState<'pending' | 'completed'>('pending');
   const router = useRouter();
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Filtrar presupuestos por sección
   const pendingBudgets = budgets.filter(budget => 
@@ -95,6 +96,20 @@ export default function GroupDetailScreen() {
   useEffect(() => {
     fetchBudgets();
   }, [id, currentUserId]);
+
+  // Refrescar al hacer swipe down
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchBudgets();
+    setRefreshing(false);
+  }, [id, currentUserId]);
+
+  // Refrescar al volver a la pantalla
+  useFocusEffect(
+    useCallback(() => {
+      fetchBudgets();
+    }, [id, currentUserId])
+  );
 
   const handleVote = async (budgetId: number, vote: 'approve' | 'reject') => {
     if (!currentUserId) return;
@@ -394,6 +409,9 @@ export default function GroupDetailScreen() {
           data={activeSection === 'pending' ? pendingBudgets : completedBudgets}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderBudgetItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
               <ThemedText style={[styles.emptyText, { color: secondaryTextColor }]}>

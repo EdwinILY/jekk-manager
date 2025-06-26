@@ -1,6 +1,6 @@
-import { Link, Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Link, Stack, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 import { getGroupsByStatus, updateUserGroupStatus } from '@/app/services/groups.service';
@@ -16,6 +16,7 @@ export default function PresupuestosScreen() {
   const [activeGroups, setActiveGroups] = useState<GroupSummary[]>([]);
   const [archivedGroups, setArchivedGroups] = useState<GroupSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'active' | 'archived'>('active');
   const [userId, setUserId] = useState<number | null>(null);
@@ -44,21 +45,28 @@ export default function PresupuestosScreen() {
     }
   };
 
+  // Refrescar al hacer swipe down
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchGroups();
+    setRefreshing(false);
+  }, [userId]);
+
+  // Refrescar al volver a la pantalla
+  useFocusEffect(
+    useCallback(() => {
+      fetchGroups();
+    }, [userId])
+  );
+
   useEffect(() => {
     fetchUserId();
   }, []);
 
-  useEffect(() => {
-    fetchGroups();
-  }, [userId]);
-
   const handleArchiveGroup = async (groupId: number) => {
     if (!userId) return;
     try {
-      console.log('Archivando grupo:', groupId);
       await updateUserGroupStatus(groupId, userId, 'archived');
-      console.log('Grupo archivado exitosamente');
-
       await fetchGroups();
     } catch (error: any) {
       console.error('Error archiving group:', error);
@@ -68,10 +76,7 @@ export default function PresupuestosScreen() {
   const handleRestoreGroup = async (groupId: number) => {
     if (!userId) return;
     try {
-      console.log('Restaurando grupo:', groupId);
       await updateUserGroupStatus(groupId, userId, 'active');
-      console.log('Grupo restaurado exitosamente');
-
       await fetchGroups();
     } catch (error: any) {
       console.error('Error restoring group:', error);
@@ -210,6 +215,9 @@ export default function PresupuestosScreen() {
         renderItem={renderGroupItem}
         keyExtractor={(item) => item.id.toString()}
         style={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         ListEmptyComponent={() => (
           <ThemedText style={styles.emptyText}>
             {activeSection === 'active' 
