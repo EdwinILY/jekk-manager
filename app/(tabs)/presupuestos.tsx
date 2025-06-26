@@ -3,12 +3,12 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
-import { GroupSummary } from '@/app/models/group.interface';
 import { getGroupsByStatus, updateUserGroupStatus } from '@/app/services/groups.service';
 import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { GroupSummary } from '@/models/group.interface';
 import { supabase } from "@/supabase";
 import { IconSymbol } from '../../components/ui/IconSymbol';
 

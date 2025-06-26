@@ -6,15 +6,15 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
-  Alert,
-  Image,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import { UserInterface } from "../../models/user.interfaz";
 import { updateUserDisplayName } from "../Interfaces/user.interface";
-import { UserInterface } from "../models/user.interfaz";
 import { updateProfileWithDefaultIcon } from "../services/storage.service";
 
 export default function PerfilScreen() {

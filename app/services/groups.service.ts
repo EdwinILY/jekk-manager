@@ -1,8 +1,8 @@
 import { supabase } from '@/supabase';
 import { decode } from 'base64-arraybuffer';
 import * as FileSystem from 'expo-file-system';
-import { Budget, NewBudget } from '../models/budget.interface';
-import { GroupSummary, NewGroup } from '../models/group.interface';
+import { Budget, NewBudget } from '../../models/budget.interface';
+import { GroupSummary, NewGroup } from '../../models/group.interface';
 
 
 export const getGroupsSummary = async (userId: number): Promise<GroupSummary[]> => {

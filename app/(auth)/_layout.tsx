@@ -17,15 +17,17 @@ export default function AuthLayout() {
         router.replace('/');
       }
     });
-    
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) {
+        router.replace('/');
+      }
     });
     return () => listener.subscription.unsubscribe();
   }, [router]);
 
-  // Wait for auth state
   if (session === undefined) return null;
+  if (session) return null;
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

@@ -1,6 +1,8 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Platform, TouchableOpacity } from 'react-native';
 
+import type { Session } from '@supabase/supabase-js';
+import { useEffect, useState } from 'react';
 import { HapticTab } from '../../components/HapticTab';
 import { IconSymbol } from '../../components/ui/IconSymbol';
 import TabBarBackground from '../../components/ui/TabBarBackground';
@@ -11,6 +13,26 @@ import { supabase } from '../../supabase';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (!session) {
+        router.replace('/login');
+      }
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) {
+        router.replace('/login');
+      }
+    });
+    return () => listener.subscription.unsubscribe();
+  }, [router]);
+
+  if (session === undefined) return null;
+  if (!session) return null;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

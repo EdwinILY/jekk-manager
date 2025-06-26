@@ -1,10 +1,10 @@
-import { Budget } from '@/app/models/budget.interface';
 import { getBudgetAttachments, getBudgetsForGroup, getUserVote, isUserAdmin, updateBudgetStatus, voteOnBudget, voteOnBudgetWithComment } from '@/app/services/groups.service';
 import { ObtenerIdAuthSupabase } from "@/app/services/supa.service";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { Budget } from '@/models/budget.interface';
 import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';

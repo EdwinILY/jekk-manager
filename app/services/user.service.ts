@@ -1,5 +1,5 @@
+import { UserInterface } from "../../models/user.interfaz"
 import { supabase } from "../../supabase"
-import { UserInterface } from "../models/user.interfaz"
 
 export async function getUserById(id: number): Promise<UserInterface | null> {
   const { data, error } = await supabase.rpc('get_user_by_id', { user_id: id })
