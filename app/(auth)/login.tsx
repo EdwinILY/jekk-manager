@@ -15,6 +15,10 @@ export default function LoginScreen() {
   const [info, setInfo] = useState<string | null>(null);
   const tintColor = useThemeColor({}, 'tint');
   const router = useRouter();
+  const bg = useThemeColor({}, 'background');
+  const inputBg = useThemeColor({}, 'card');
+  const inputBorder = useThemeColor({}, 'icon');
+  const textColor = useThemeColor({}, 'text');
 
   const handleLogin = async () => {
     setInfo(null);
@@ -51,35 +55,35 @@ export default function LoginScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: bg }]}>
       {/* TODO: icon principal */}
       <ThemedText type="title" style={styles.title}>Ingresar</ThemedText>
       <View style={styles.form}>
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { backgroundColor: inputBg, borderColor: inputBorder }]}>
           {/* TODO: icon correo */}
           <TextInput
             placeholder="Correo"
-            placeholderTextColor={useThemeColor({}, 'text')}
-            style={styles.input}
+            placeholderTextColor={textColor + '99'}
+            style={[styles.input, { color: textColor }]}
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
           />
         </View>
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { backgroundColor: inputBg, borderColor: inputBorder }]}>
           {/* TODO: icon contraseña */}
           <TextInput
             placeholder="Contraseña"
-            placeholderTextColor={useThemeColor({}, 'text')}
-            style={styles.input}
+            placeholderTextColor={textColor + '99'}
+            style={[styles.input, { color: textColor }]}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
         </View>
-        {error && <ThemedText style={styles.error}>{error}</ThemedText>}
-        {info && <ThemedText style={styles.info}>{info}</ThemedText>}
+        {error && <ThemedText style={[styles.error, { color: '#e74c3c', fontWeight: 'bold' }]}>{error}</ThemedText>}
+        {info && <ThemedText style={[styles.info, { color: '#27ae60', fontWeight: 'bold' }]}>{info}</ThemedText>}
         <TouchableOpacity
           style={[styles.button, { backgroundColor: tintColor }]}
           onPress={handleLogin}
@@ -88,7 +92,7 @@ export default function LoginScreen() {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <ThemedText style={styles.buttonText}>Ingresar →</ThemedText>
+            <ThemedText style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>Ingresar →</ThemedText>
           )}
         </TouchableOpacity>
         <View style={styles.authLinks}>
@@ -123,22 +127,23 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 15,
-    padding: 10,
+    padding: 12,
   },
   input: {
     flex: 1,
-    height: 40,
-    color: '#363636',
+    height: 44,
+    fontSize: 16,
+    paddingHorizontal: 8,
   },
   button: {
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 15,
+    marginTop: 8,
   },
   buttonText: {
     color: '#fff',

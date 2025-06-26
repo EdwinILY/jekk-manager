@@ -119,7 +119,7 @@ export default function RegisterScreen() {
                     {loading ? (
                         <ActivityIndicator color="#fff" />
                     ) : (
-                        <ThemedText style={styles.buttonText}>Registrarse →</ThemedText>
+                        <ThemedText style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>Registrarse →</ThemedText>
                     )}
                 </TouchableOpacity>
                 <Link href="/login" asChild>
