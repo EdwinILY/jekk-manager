@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
@@ -28,6 +29,7 @@ import {
   type MonthlyData,
   type UserGroup,
 } from '../../services/dashboardService';
+import { generatePDF } from '../../services/pdfService';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -40,6 +42,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
   const [selectedGroup, setSelectedGroup] = useState('all');
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   // Estados para los datos
   const [userGroups, setUserGroups] = useState<UserGroup[]>([]);
@@ -113,6 +116,42 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
     loadAllDashboardData();
   };
 
+  // Función para generar PDF
+  const handleGeneratePDF = async () => {
+    if (!userId) {
+      Alert.alert('Error', 'No se puede generar el PDF sin usuario autenticado');
+      return;
+    }
+
+    if (expensesByCategory.length === 0 && recentActivity.length === 0) {
+      Alert.alert('Sin datos', 'No hay datos suficientes para generar el PDF');
+      return;
+    }
+
+    setGeneratingPDF(true);
+    
+    const selectedGroupData = userGroups.find(group => group.id === selectedGroup);
+    const groupName = selectedGroupData?.name || 'Todos los grupos';
+
+    const pdfData = {
+      dashboardStats,
+      expensesByCategory,
+      recentActivity,
+      selectedGroup,
+      selectedPeriod,
+      groupName,
+    };
+
+    try {
+      await generatePDF(pdfData);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      Alert.alert('Error', 'No se pudo generar el PDF. Verifica los permisos de almacenamiento.');
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
+
   const chartConfig = {
     backgroundColor: '#ffffff',
     backgroundGradientFrom: '#ffffff',
@@ -171,8 +210,26 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Dashboard</Text>
-        <Text style={styles.headerSubtitle}>Resumen de presupuestos</Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.headerTitle}>Dashboard</Text>
+            <Text style={styles.headerSubtitle}>Resumen de presupuestos</Text>
+          </View>
+          <TouchableOpacity 
+            style={[styles.pdfButton, (loading || generatingPDF) && styles.pdfButtonDisabled]} 
+            onPress={handleGeneratePDF}
+            disabled={loading || generatingPDF}
+          >
+            <Icon 
+              name={generatingPDF ? "hourglass-empty" : "picture-as-pdf"} 
+              size={20} 
+              color="#fff" 
+            />
+            <Text style={styles.pdfButtonText}>
+              {generatingPDF ? 'Generando...' : 'PDF'}
+            </Text>
+          </TouchableOpacity>
+        </View>
         {loading && (
           <View style={styles.loadingIndicator}>
             <Icon name="sync" size={20} color="#666" />
@@ -362,6 +419,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -371,6 +433,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6c757d',
     marginTop: 4,
+  },
+  pdfButton: {
+    backgroundColor: '#5196f4',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  pdfButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  pdfButtonDisabled: {
+    backgroundColor: '#9ca3af',
+    elevation: 0,
+    shadowOpacity: 0,
   },
   loadingIndicator: {
     flexDirection: 'row',

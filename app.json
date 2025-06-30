@@ -29,7 +29,9 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
       ],
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.jekkmanager"
