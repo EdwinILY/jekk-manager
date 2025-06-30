@@ -1,6 +1,8 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Platform, TouchableOpacity } from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import type { Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { HapticTab } from '../../components/HapticTab';
@@ -68,7 +70,7 @@ export default function TabLayout() {
         name="presupuestos"
         options={{
           title: 'Presupuestos',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="dollarsign.circle.fill" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialIcons name="paid" size={28} color={color} />,
           headerTitle: 'Presupuestos',
         }}
       />
@@ -76,7 +78,7 @@ export default function TabLayout() {
         name="perfil"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          tabBarIcon: ({ color }) => <FontAwesome name="user" size={28} color={color} />,
           headerTitle: 'Perfil',
         }}
       />
