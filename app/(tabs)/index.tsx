@@ -136,16 +136,17 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
     icon: string;
     color?: string;
     subtitle?: string;
+    showCurrency?: boolean;
   }
 
-  const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color = '#5196f4', subtitle }) => (
+  const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color = '#5196f4', subtitle, showCurrency = true }) => (
     <View style={[styles.statCard, { borderLeftColor: color }]}>
       <View style={styles.statHeader}>
         <Icon name={icon} size={24} color={color} />
         <Text style={styles.statTitle}>{title}</Text>
       </View>
       <Text style={styles.statValue}>
-        ${typeof value === 'number' ? value.toLocaleString() : '0'}
+        {showCurrency ? '$' : ''}{typeof value === 'number' ? value.toLocaleString() : '0'}
       </Text>
       {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
     </View>
@@ -238,6 +239,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
           value={dashboardStats.groupCount}
           icon="group"
           color="#45B7D1"
+          showCurrency={false}
         />
       </View>
 
