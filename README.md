@@ -10,30 +10,58 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. **Database Setup**
+
+   **First, set up your Supabase database:**
+   
+   a. Execute the base schema:
+   ```sql
+   -- Execute the content of base.txt in your Supabase SQL editor
+   ```
+   
+   b. Set up user synchronization triggers:
+   ```sql
+   -- Execute the content of trigger.txt in your Supabase SQL editor
+   -- Then execute sync_users.sql to sync existing users and set up policies
+   ```
+   
+   c. Configure your environment variables:
+   ```bash
+   # Create a .env file with your Supabase credentials
+   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+3. Start the app
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## Dashboard Features
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+The dashboard now connects to your Supabase database and displays real data:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **Real-time data**: Fetches actual expenses, budgets, and group information
+- **User authentication**: Uses Supabase Auth to identify users
+- **Group filtering**: Filter data by specific groups or view all groups
+- **Period filtering**: View data for different time periods (week, month, quarter, year)
+- **Interactive charts**: Expenses by category, monthly trends, and budget comparisons
+- **Recent activity**: Shows latest expenses and budget activities
+- **PDF generation**: Generate reports with current data
 
-## Get a fresh project
+### Database Tables Used:
+- `users`: User profiles synchronized with Supabase Auth
+- `groups`: User groups for organizing budgets
+- `group_members`: User membership in groups
+- `budgets`: Budget entries with status tracking
+- `expenses`: Expense records linked to budgets and groups
+- `contributions`: User contributions to group funds
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Key Components:
+- `services/dashboardService.ts`: Handles all database queries for the dashboard
+- `app/services/supa.service.ts`: Manages Supabase authentication
+- `app/(tabs)/index.tsx`: Main dashboard component
 
 ## Learn more
 

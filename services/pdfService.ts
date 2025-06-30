@@ -5,45 +5,45 @@ import { Alert } from 'react-native';
 import type { ActivityItem, DashboardStats, ExpenseCategory } from './dashboardService';
 
 interface PDFData {
-  dashboardStats: DashboardStats;
-  expensesByCategory: ExpenseCategory[];
-  recentActivity: ActivityItem[];
-  selectedGroup: string;
-  selectedPeriod: string;
-  groupName: string;
+    dashboardStats: DashboardStats;
+    expensesByCategory: ExpenseCategory[];
+    recentActivity: ActivityItem[];
+    selectedGroup: string;
+    selectedPeriod: string;
+    groupName: string;
 }
 
 const formatCurrency = (amount: number): string => {
-  return `$${amount.toLocaleString()}`;
+    return `$${amount.toLocaleString()}`;
 };
 
 const formatPeriod = (period: string): string => {
-  const periods: { [key: string]: string } = {
-    week: 'Esta semana',
-    month: 'Este mes',
-    quarter: 'Trimestre',
-    year: 'Este año'
-  };
-  return periods[period] || period;
+    const periods: { [key: string]: string } = {
+        week: 'Esta semana',
+        month: 'Este mes',
+        quarter: 'Trimestre',
+        year: 'Este año'
+    };
+    return periods[period] || period;
 };
 
 const generateHTMLContent = (data: PDFData): string => {
-  const { dashboardStats, expensesByCategory, recentActivity, selectedPeriod, groupName } = data;
-  
-  const currentDate = new Date().toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+    const { dashboardStats, expensesByCategory, recentActivity, selectedPeriod, groupName } = data;
 
-  const expensesCategoriesHTML = expensesByCategory.map(category => `
+    const currentDate = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    const expensesCategoriesHTML = expensesByCategory.map(category => `
     <tr>
       <td style="padding: 8px; border-bottom: 1px solid #ddd;">${category.name}</td>
       <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(category.amount)}</td>
     </tr>
   `).join('');
 
-  const recentActivityHTML = recentActivity.slice(0, 10).map(activity => `
+    const recentActivityHTML = recentActivity.slice(0, 10).map(activity => `
     <tr>
       <td style="padding: 8px; border-bottom: 1px solid #ddd;">${activity.description}</td>
       <td style="padding: 8px; border-bottom: 1px solid #ddd;">${activity.group}</td>
@@ -54,7 +54,7 @@ const generateHTMLContent = (data: PDFData): string => {
     </tr>
   `).join('');
 
-  return `
+    return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -232,48 +232,48 @@ const generateHTMLContent = (data: PDFData): string => {
 };
 
 export const generatePDF = async (data: PDFData): Promise<void> => {
-  try {
-    const htmlContent = generateHTMLContent(data);
-    
-    // Generar PDF usando expo-print
-    const { uri } = await Print.printToFileAsync({ 
-      html: htmlContent,
-      base64: false,
-    });
-    
-    // Verificar si el dispositivo puede compartir archivos
-    const isAvailable = await Sharing.isAvailableAsync();
-    
-    if (isAvailable) {
-      // Compartir el PDF
-      await Sharing.shareAsync(uri, {
-        UTI: 'com.adobe.pdf',
-        mimeType: 'application/pdf',
-        dialogTitle: `Reporte de Presupuestos - ${data.groupName}`
-      });
-      
-      Alert.alert(
-        'PDF Generado',
-        `El reporte se ha generado exitosamente para ${data.groupName} - ${formatPeriod(data.selectedPeriod)}`,
-        [{ text: 'OK' }]
-      );
-    } else {
-      Alert.alert(
-        'PDF Generado',
-        'El PDF se ha generado pero no se puede compartir en este dispositivo.',
-        [{ text: 'OK' }]
-      );
+    try {
+        const htmlContent = generateHTMLContent(data);
+
+        // Generar PDF usando expo-print
+        const { uri } = await Print.printToFileAsync({
+            html: htmlContent,
+            base64: false,
+        });
+
+        // Verificar si el dispositivo puede compartir archivos
+        const isAvailable = await Sharing.isAvailableAsync();
+
+        if (isAvailable) {
+            // Compartir el PDF
+            await Sharing.shareAsync(uri, {
+                UTI: 'com.adobe.pdf',
+                mimeType: 'application/pdf',
+                dialogTitle: `Reporte de Presupuestos - ${data.groupName}`
+            });
+
+            Alert.alert(
+                'PDF Generado',
+                `El reporte se ha generado exitosamente para ${data.groupName} - ${formatPeriod(data.selectedPeriod)}`,
+                [{ text: 'OK' }]
+            );
+        } else {
+            Alert.alert(
+                'PDF Generado',
+                'El PDF se ha generado pero no se puede compartir en este dispositivo.',
+                [{ text: 'OK' }]
+            );
+        }
+    } catch (error) {
+        console.error('Error generando PDF:', error);
+        Alert.alert(
+            'Error',
+            'No se pudo generar el PDF. Intenta de nuevo.',
+            [{ text: 'OK' }]
+        );
     }
-  } catch (error) {
-    console.error('Error generando PDF:', error);
-    Alert.alert(
-      'Error',
-      'No se pudo generar el PDF. Intenta de nuevo.',
-      [{ text: 'OK' }]
-    );
-  }
 };
 
 export default {
-  generatePDF,
+    generatePDF,
 };

@@ -30,14 +30,15 @@ import {
   type UserGroup,
 } from '../../services/dashboardService';
 import { generatePDF } from '../../services/pdfService';
+import { ObtenerIdAuthSupabase } from '../services/supa.service';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 interface DashboardProps {
-  userId?: string;
+  userUID?: string;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de tu sistema de autenticación
+const Dashboard: React.FC<DashboardProps> = ({ userUID }) => { // userUID viene de Supabase Auth
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedGroup, setSelectedGroup] = useState('all');
   const [loading, setLoading] = useState(false);
@@ -60,7 +61,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
 
   // Función principal para cargar todos los datos
   const loadAllDashboardData = React.useCallback(async () => {
-    if (!userId) return;
+    if (!userUID) return;
     
     try {
       setLoading(true);
@@ -74,12 +75,12 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
         activityData,
         statsData
       ] = await Promise.all([
-        loadUserGroups(userId),
-        loadExpensesByCategory(userId, selectedGroup, selectedPeriod),
-        loadMonthlyTrend(userId, selectedGroup),
-        loadBudgetComparison(userId, selectedGroup, selectedPeriod),
-        loadRecentActivity(userId, selectedGroup),
-        loadDashboardStats(userId, selectedGroup, selectedPeriod)
+        loadUserGroups(userUID),
+        loadExpensesByCategory(userUID, selectedGroup, selectedPeriod),
+        loadMonthlyTrend(userUID, selectedGroup),
+        loadBudgetComparison(userUID, selectedGroup, selectedPeriod),
+        loadRecentActivity(userUID, selectedGroup),
+        loadDashboardStats(userUID, selectedGroup, selectedPeriod)
       ]);
 
       // Actualizar estados
@@ -101,14 +102,14 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
       setLoading(false);
       setRefreshing(false);
     }
-  }, [userId, selectedGroup, selectedPeriod]);
+  }, [userUID, selectedGroup, selectedPeriod]);
 
   // Cargar datos cuando cambian los filtros
   useEffect(() => {
-    if (userId) {
+    if (userUID) {
       loadAllDashboardData();
     }
-  }, [userId, selectedPeriod, selectedGroup, loadAllDashboardData]);
+  }, [userUID, selectedPeriod, selectedGroup, loadAllDashboardData]);
 
   // Función para refresh
   const onRefresh = () => {
@@ -118,7 +119,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
 
   // Función para generar PDF
   const handleGeneratePDF = async () => {
-    if (!userId) {
+    if (!userUID) {
       Alert.alert('Error', 'No se puede generar el PDF sin usuario autenticado');
       return;
     }
@@ -191,8 +192,8 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => { // userId viene de
     </View>
   );
 
-  // Mostrar loading si no hay userId
-  if (!userId) {
+  // Mostrar loading si no hay userUID
+  if (!userUID) {
     return (
       <View style={styles.loadingContainer}>
         <Icon name="account-circle" size={64} color="#ccc" />
@@ -627,12 +628,37 @@ const styles = StyleSheet.create({
   },
 });
 
-// Wrapper component that provides userId - replace with your auth logic
+// Wrapper component that provides userUID - uses Supabase auth
 const DashboardWrapper: React.FC = () => {
-  // Replace this with your actual user authentication logic
-  const userId = 'user-123'; // This should come from your auth context/state
-  
-  return <Dashboard userId={userId} />;
+  const [userUID, setUserUID] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getUserUID = async () => {
+      try {
+        const uid = await ObtenerIdAuthSupabase();
+        setUserUID(uid || null);
+      } catch (error) {
+        console.error('Error getting user UID:', error);
+        setUserUID(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getUserUID();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Icon name="hourglass-empty" size={64} color="#ccc" />
+        <Text style={styles.loadingText}>Cargando...</Text>
+      </View>
+    );
+  }
+
+  return <Dashboard userUID={userUID || undefined} />;
 };
 
 export default DashboardWrapper;
