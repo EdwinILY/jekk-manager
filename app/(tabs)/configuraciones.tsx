@@ -6,7 +6,8 @@ import { Collapsible } from '../../components/Collapsible';
 import ParallaxScrollView from '../../components/ParallaxScrollView';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
-import { IconSymbol } from '../../components/ui/IconSymbol';
+
+import Feather from '@expo/vector-icons/Feather';
 import { Colors } from '../../constants/Colors';
 import { useColorScheme } from '../../hooks/useColorScheme';
 import { supabase } from '../../supabase';
@@ -51,7 +52,7 @@ export default function TabTwoScreen() {
         onPress={handleLogout}
         style={styles.logoutButton}
       >
-        <IconSymbol name="power" size={24} color="#fff" />
+        <Feather name="log-out" size={24} color="#fff" />
         <ThemedText style={styles.logoutText}>Cerrar sesión</ThemedText>
       </TouchableOpacity>
     </ParallaxScrollView>

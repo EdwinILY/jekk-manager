@@ -2,6 +2,8 @@ import { Tabs, useRouter } from 'expo-router';
 import { Platform, TouchableOpacity } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import type { Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
@@ -58,6 +60,7 @@ export default function TabLayout() {
           </TouchableOpacity>
         ),
       }}>
+        
       <Tabs.Screen
         name="index"
         options={{
@@ -80,6 +83,14 @@ export default function TabLayout() {
           title: 'Perfil',
           tabBarIcon: ({ color }) => <FontAwesome name="user" size={28} color={color} />,
           headerTitle: 'Perfil',
+        }}
+      />
+      <Tabs.Screen
+        name="configuraciones"
+        options={{
+          title: 'configuraciones',
+          tabBarIcon: ({ color }) => <Ionicons name="settings-sharp" size={28} color={color} />,
+          headerTitle: 'configuraciones',
         }}
       />
     </Tabs>
