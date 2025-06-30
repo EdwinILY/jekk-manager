@@ -170,6 +170,9 @@ export const loadExpensesByCategory = async (
       if (userGroups && userGroups.length > 0) {
         const groupIds = userGroups.map(g => g.group_id);
         query = query.in('group_id', groupIds);
+      } else {
+        // User has no groups, return empty array
+        return [];
       }
     }
 
@@ -225,6 +228,17 @@ export const loadMonthlyTrend = async (
       labels.push(date.toLocaleDateString('es-ES', { month: 'short' }));
     }
 
+    // Get all groups for the user first to check if user has any groups
+    const { data: userGroupsCheck } = await supabase
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', userId);
+    
+    // If user has no groups and trying to see "all", return empty data
+    if (groupId === 'all' && (!userGroupsCheck || userGroupsCheck.length === 0)) {
+      return { labels, datasets: [{ data: new Array(6).fill(0) }] };
+    }
+
     const monthlyData = [];
 
     for (const month of months) {
@@ -241,16 +255,9 @@ export const loadMonthlyTrend = async (
       if (groupId !== 'all') {
         query = query.eq('group_id', parseInt(groupId));
       } else {
-        // Get all groups for the user
-        const { data: userGroups } = await supabase
-          .from('group_members')
-          .select('group_id')
-          .eq('user_id', userId);
-        
-        if (userGroups && userGroups.length > 0) {
-          const groupIds = userGroups.map(g => g.group_id);
-          query = query.in('group_id', groupIds);
-        }
+        // Use the groups we already fetched
+        const groupIds = userGroupsCheck!.map(g => g.group_id);
+        query = query.in('group_id', groupIds);
       }
 
       const { data, error } = await query;
@@ -319,6 +326,9 @@ export const loadBudgetComparison = async (
         const groupIds = userGroups.map(g => g.group_id);
         budgetQuery = budgetQuery.in('group_id', groupIds);
         expenseQuery = expenseQuery.in('group_id', groupIds);
+      } else {
+        // User has no groups, return empty data
+        return { labels: [], datasets: [{ data: [] }], data: [] };
       }
     }
 
@@ -412,6 +422,9 @@ export const loadRecentActivity = async (
         const groupIds = userGroups.map(g => g.group_id);
         expenseQuery = expenseQuery.in('group_id', groupIds);
         budgetQuery = budgetQuery.in('group_id', groupIds);
+      } else {
+        // User has no groups, return empty array
+        return [];
       }
     }
 
@@ -541,6 +554,15 @@ export const loadDashboardStats = async (
     } else if (groupIds.length > 0) {
       expenseQuery = expenseQuery.in('group_id', groupIds);
       budgetQuery = budgetQuery.in('group_id', groupIds);
+    } else {
+      // User has no groups, return zero stats
+      return {
+        totalExpenses: 0,
+        totalBudgeted: 0,
+        totalActual: 0,
+        difference: 0,
+        groupCount: 0,
+      };
     }
 
     const [expenseResult, budgetResult] = await Promise.all([
