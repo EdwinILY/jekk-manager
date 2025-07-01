@@ -1,5 +1,5 @@
 import * as Linking from 'expo-linking';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '../../components/ThemedText';
@@ -12,42 +12,110 @@ export default function ResetPasswordScreen() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [info, setInfo] = useState<string | null>(null);
+    const [debugInfo, setDebugInfo] = useState<string>('');
     const router = useRouter();
+    const params = useLocalSearchParams();
 
     useEffect(() => {
-        (async () => {
-            const url = await Linking.getInitialURL();
+        const handleUrl = (url: string) => {
+            console.log('Reset password received URL:', url);
+            //setDebugInfo(`URL recibida: ${url}`);
+            setDebugInfo(`Ingrese la nueva contraseña`);
             if (!url) {
                 setError('Enlace inválido');
                 setLoading(false);
                 return;
             }
-            // Parse fragment for tokens
-            const [, fragment] = url.split('#');
-            if (!fragment) {
-                setError('Token no encontrado en la URL');
+            
+            // Parse URL for tokens - they can come as query parameters or fragments
+            let urlParams: Record<string, string> = {};
+            
+            try {
+                // First try to get from query parameters
+                const urlObj = new URL(url);
+                urlObj.searchParams.forEach((value, key) => {
+                    urlParams[key] = value;
+                });
+                
+                // If no tokens found in query params, try fragment
+                if (!urlParams['access_token'] && url.includes('#')) {
+                    const [, fragment] = url.split('#');
+                    if (fragment) {
+                        fragment.split('&').forEach(pair => {
+                            const [key, value] = pair.split('=');
+                            if (key && value) urlParams[key] = decodeURIComponent(value);
+                        });
+                    }
+                }
+                
+                // Also check route params
+                const access_token = urlParams['access_token'] || params.access_token as string;
+                const refresh_token = urlParams['refresh_token'] || params.refresh_token as string;
+                
+                console.log('Parsed params:', { access_token: access_token ? 'found' : 'not found', refresh_token: refresh_token ? 'found' : 'not found' });
+                
+                if (access_token && refresh_token) {
+                    supabase.auth.setSession({ access_token, refresh_token }).then(({ error: sessionError }) => {
+                        if (sessionError) {
+                            setError(sessionError.message);
+                        }
+                        setLoading(false);
+                    });
+                } else {
+                    // If no tokens in URL, check if we already have a session (user might have clicked link while logged in)
+                    supabase.auth.getSession().then(({ data: { session } }) => {
+                        if (session) {
+                            setLoading(false);
+                        } else {
+                            setError('Tokens inválidos en la URL');
+                            setLoading(false);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Error parsing URL:', err);
+                setError('Error al procesar la URL');
                 setLoading(false);
-                return;
             }
-            const params: Record<string,string> = {};
-            fragment.split('&').forEach(pair => {
-                const [key, value] = pair.split('=');
-                if (key && value) params[key] = decodeURIComponent(value);
-            });
-            const access_token = params['access_token'];
-            const refresh_token = params['refresh_token'];
-            if (!access_token || !refresh_token) {
-                setError('Tokens inválidos');
-                setLoading(false);
-                return;
+        };
+
+        // Handle initial URL when app is opened from link
+        Linking.getInitialURL().then((url) => {
+            if (url) {
+                handleUrl(url);
+            } else if (params.access_token && params.refresh_token) {
+                // Handle case where tokens come directly from route params
+                console.log('Using route params for tokens');
+                setDebugInfo('Usando parámetros de ruta');
+                supabase.auth.setSession({ 
+                    access_token: params.access_token as string, 
+                    refresh_token: params.refresh_token as string 
+                }).then(({ error: sessionError }) => {
+                    if (sessionError) {
+                        setError(sessionError.message);
+                    }
+                    setLoading(false);
+                });
+            } else {
+                // Check if we already have a session
+                supabase.auth.getSession().then(({ data: { session } }) => {
+                    if (session) {
+                        setLoading(false);
+                    } else {
+                        setError('No se encontró enlace de recuperación');
+                        setLoading(false);
+                    }
+                });
             }
-            const { error: sessionError } = await supabase.auth.setSession({ access_token, refresh_token });
-            if (sessionError) {
-                setError(sessionError.message);
-            }
-            setLoading(false);
-        })();
-    }, []);
+        });
+
+        // Handle URL when app is already open
+        const subscription = Linking.addEventListener('url', ({ url }) => {
+            handleUrl(url);
+        });
+
+        return () => subscription?.remove();
+    }, [params.access_token, params.refresh_token]);
 
     const handleSubmit = async () => {
         setError(null);
@@ -96,6 +164,7 @@ export default function ResetPasswordScreen() {
                 />
                 {error && <ThemedText style={styles.error}>{error}</ThemedText>}
                 {info && <ThemedText style={styles.info}>{info}</ThemedText>}
+                {debugInfo && <ThemedText style={styles.debug}>{debugInfo}</ThemedText>}
                 <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
                     {loading ? (
                         <ActivityIndicator color="#fff" />
@@ -148,6 +217,11 @@ const styles = StyleSheet.create({
     },
     info: {
         color: 'green',
+        marginTop: 10,
+    },
+    debug: {
+        color: '#666',
+        fontSize: 12,
         marginTop: 10,
     },
 });

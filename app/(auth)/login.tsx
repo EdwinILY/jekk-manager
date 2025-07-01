@@ -42,9 +42,14 @@ export default function LoginScreen() {
       return;
     }
     setLoading(true);
-    // Generate deep link to the reset-password route (group folders are omitted)
-    // Use non-leading slash for correct deep link without hash
+    // Generate deep link to the reset-password route using the app scheme
+    // Use the actual path defined by expo-router (routes in (auth) group are served at /reset-password)
     const redirectUrl = Linking.createURL('reset-password');
+    console.log('Generated redirect URL:', redirectUrl);
+    
+    // For development, you might want to use localhost explicitly
+    // const redirectUrl = 'http://localhost:8081/reset-password';
+    
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
     if (resetError) {
       setError(resetError.message);
