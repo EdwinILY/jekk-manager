@@ -126,7 +126,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userUID }) => {
       return;
     }
 
-    if (expensesByCategory.length === 0 && recentActivity.length === 0) {
+    if (expensesByCategory.length === 0 && recentActivity.length === 0 && pendingContributions.length === 0) {
       Alert.alert("Sin datos", "No hay datos suficientes para generar el PDF");
       return;
     }
@@ -136,13 +136,41 @@ const Dashboard: React.FC<DashboardProps> = ({ userUID }) => {
     const selectedGroupData = userGroups.find((group) => group.id === selectedGroup);
     const groupName = selectedGroupData?.name || "Todos los grupos";
 
+    // Datos enriquecidos para el PDF
     const pdfData = {
+      // Información básica
       dashboardStats,
       expensesByCategory,
       recentActivity,
       selectedGroup,
       selectedPeriod,
       groupName,
+
+      // Nueva información de contribuciones
+      pendingContributions,
+      totalPendingAmount,
+
+      // Información adicional del usuario y fecha
+      generatedBy: userUID,
+      generatedAt: new Date().toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+
+      // Resumen de contribuciones por prioridad
+      contributionsSummary: {
+        high: pendingContributions.filter((c) => c.priority === "high").reduce((sum, c) => sum + c.contribution_amount, 0),
+        medium: pendingContributions.filter((c) => c.priority === "medium").reduce((sum, c) => sum + c.contribution_amount, 0),
+        low: pendingContributions.filter((c) => c.priority === "low").reduce((sum, c) => sum + c.contribution_amount, 0),
+        totalAmount: totalPendingAmount,
+      },
+
+      // Información de grupos
+      totalGroups: dashboardStats.groupCount,
+      userGroups: userGroups.length,
     };
 
     try {
@@ -251,15 +279,15 @@ const Dashboard: React.FC<DashboardProps> = ({ userUID }) => {
 
       {/* Tarjetas de Resumen */}
       <View style={styles.statsGrid}>
-        <StatCard title="Total Gastado" value={dashboardStats.totalExpenses} icon="account-balance-wallet" color="#FF6B6B" />
-        <StatCard title="Presupuestado" value={dashboardStats.totalBudgeted} icon="trending-up" color="#4ECDC4" />
-        <StatCard
+        {/* <StatCard title="Total Gastado" value={dashboardStats.totalExpenses} icon="account-balance-wallet" color="#FF6B6B" /> */}
+        {/* <StatCard title="Presupuestado" value={dashboardStats.totalBudgeted} icon="trending-up" color="#4ECDC4" /> */}
+        {/* <StatCard
           title="Diferencia"
           value={Math.abs(dashboardStats.difference)}
           icon={dashboardStats.difference >= 0 ? "trending-up" : "trending-down"}
           color={dashboardStats.difference >= 0 ? "#96CEB4" : "#FF6B6B"}
           subtitle={dashboardStats.difference >= 0 ? "Bajo presupuesto" : "Sobre presupuesto"}
-        />
+        /> */}
         <StatCard title="Grupos" value={dashboardStats.groupCount} icon="group" color="#45B7D1" showCurrency={false} />
       </View>
 
